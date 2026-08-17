@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inversora Macroandes </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+    <!-- Encabezado y Seleccionador de Obras -->
+    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+                <i class="fa-solid fa-chart-pie text-blue-500"></i>
+                Inversora Macroandes - Dashboard Control de Obras
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">Analisis financiero de Proyectos en Tiempo Real</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <label for="selectObra" class="text-sm font-medium text-slate-300">Seleccionar Obra:</label>
+            <select id="selectObra" onchange="actualizarDashboard()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </select>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto">
+        <!-- 6 Tarjetas de Indicadores Principales (Orden Estricto Solicitado) -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
+
+            <!-- 1. Monto Contrato -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Monto Contrato</p>
+                <h3 class="text-2xl font-bold text-white mt-2" id="kpi-monto">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Valor contractual acordado</p>
+            </div>
+
+            <!-- 2. Ejecutado -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Ejecutado</p>
+                <h3 class="text-2xl font-bold text-blue-400 mt-2" id="kpi-estimado">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Monto de avance financiero ejecutado</p>
+            </div>
+
+            <!-- 3. Desembolsado -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">3. Desembolsado</p>
+                <h3 class="text-2xl font-bold text-emerald-400 mt-2" id="kpi-cobrado">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Total recaudado efectivamente</p>
+            </div>
+
+            <!-- 4. Egresos Reales -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">4. Egresos Reales</p>
+                <h3 class="text-2xl font-bold text-rose-400 mt-2" id="kpi-egresos">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Compras y mano de obra</p>
+            </div>
+
+            <!-- 5. Por Desembolsar -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">5. Por Cobrar</p>
+                <h3 class="text-2xl font-bold text-amber-400 mt-2" id="kpi-por-cobrar">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Saldo pendiente por cobrar</p>
+            </div>
+
+            <!-- 6. Avance Financiero (%) -->
+            <div class="glass-card p-5 rounded-xl">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">6. Avance Financiero (%)</p>
+                <h3 class="text-2xl font-bold text-indigo-400 mt-2" id="kpi-avance-pct">0,00%</h3>
+                <p class="text-xs text-slate-500 mt-1">Porcentaje cobrado sobre el contrato</p>
+            </div>
+
+        </div>
+
+        <!-- 7. Diagrama en Cascada (Waterfall) -->
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-[#3b82f6] fa-chart-bar text-blue-400"></i>
+                    7. Conciliación de Flujo de Caja
+                </h2>
+            </div>
+            <div id="waterfallChart" style="width:100%; height:400px;"></div>
+        </div>
+    </main>
+
+    <script>
+        const datosProyectos = {"Fatima": {"monto_contrato": 43821.59, "estimado_ejecutado": 21784.026381865144, "cobrado_desembolsado": 33203.99, "egresos_reales": 21784.03, "por_cobrar": -11419.963618134854, "avance_financiero_pct": 75.77, "flujo_caja": 11419.96}};
+
+        function formatearUSD(valor) {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 }).format(valor);
+        }
+
+        function inicializarSelector() {
+            const select = document.getElementById('selectObra');
+            select.innerHTML = '';
+            
+            const obras = Object.keys(datosProyectos);
+            obras.forEach(obra => {
+                const option = document.createElement('option');
+                option.value = obra;
+                option.textContent = obra;
+                select.appendChild(option);
+            });
+
+            if (obras.length > 0) {
+                select.value = obras[0];
+                actualizarDashboard();
+            }
+        }
+
+        function actualizarDashboard() {
+            const obraSeleccionada = document.getElementById('selectObra').value;
+            const data = datosProyectos[obraSeleccionada];
+
+            if (!data) return;
+
+            // Actualizar Tarjetas 1 a 6
+            document.getElementById('kpi-monto').textContent = formatearUSD(data.monto_contrato);
+            document.getElementById('kpi-estimado').textContent = formatearUSD(data.estimado_ejecutado);
+            document.getElementById('kpi-cobrado').textContent = formatearUSD(data.cobrado_desembolsado);
+            document.getElementById('kpi-egresos').textContent = formatearUSD(data.egresos_reales);
+            document.getElementById('kpi-por-cobrar').textContent = formatearUSD(data.por_cobrar);
+            document.getElementById('kpi-avance-pct').textContent = data.avance_financiero_pct.toFixed(2) + '%';
+
+            // Renderizar Gráfico 7: Waterfall Chart
+            renderizarWaterfall(data.cobrado_desembolsado, data.egresos_reales, data.flujo_caja);
+        }
+
+        function renderizarWaterfall(cobrado, egresos, flujo) {
+            const trace = {
+                type: "waterfall",
+                orientation: "v",
+                measure: ["relative", "relative", "total"],
+                x: ["Cobrado Acumulado", "Egresos Reales", "Flujo de Caja Neto"],
+                y: [cobrado, -egresos, flujo],
+                connector: { line: { color: "rgba(255, 255, 255, 0.2)", width: 1, dash: "dot" } },
+                decreasing: { marker: { color: "#f43f5e" } },
+                increasing: { marker: { color: "#10b981" } },
+                totals: { marker: { color: "#3b82f6" } },
+                textposition: "outside",
+                text: [formatearUSD(cobrado), formatearUSD(-egresos), formatearUSD(flujo)],
+                hoverinfo: "x+text"
+            };
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                font: { color: '#94a3b8', family: 'Inter' },
+                xaxis: { tickfont: { color: '#e2e8f0', size: 12 } },
+                yaxis: { title: 'Monto ($ USD)', gridcolor: '#334155', zerolinecolor: '#475569' },
+                margin: { t: 30, b: 40, l: 60, r: 20 },
+                autosize: true
+            };
+
+            Plotly.newPlot('waterfallChart', [trace], layout, { responsive: true, displayModeBar: false });
+        }
+
+        document.addEventListener('DOMContentLoaded', inicializarSelector);
+    </script>
+</body>
+</html>
