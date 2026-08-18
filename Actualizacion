@@ -1,0 +1,6 @@
+python src/generar_html.py
+Copy-Item output\dashboard_obras.html index.html
+
+git add .
+git commit -m "Actualizacion de datos financieros en Excel"
+git push origin main
