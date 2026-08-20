@@ -72,11 +72,11 @@ def generar_dashboard():
                 <p class="text-xs text-slate-500 mt-1">Total recaudado efectivamente</p>
             </div>
 
-            <!-- 4. Egresos Reales -->
+            <!-- 4. Flujo de Caja -->
             <div class="glass-card p-5 rounded-xl">
-                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">4. Egresos Reales</p>
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">4. FLUJO DE CAJA</p>
                 <h3 class="text-2xl font-bold text-rose-400 mt-2" id="kpi-egresos">$0,00</h3>
-                <p class="text-xs text-slate-500 mt-1">Compras y mano de obra</p>
+                <p class="text-xs text-slate-500 mt-1">Efectivo en caja</p>
             </div>
 
             <!-- 5. Por Desembolsar -->
