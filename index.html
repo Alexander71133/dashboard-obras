@@ -132,22 +132,22 @@
             document.getElementById('kpi-avance-pct').textContent = data.avance_financiero_pct.toFixed(2) + '%';
 
             // Renderizar Gráfico 7: Waterfall Chart
-            renderizarWaterfall(data.cobrado_desembolsado, data.egresos_reales, data.flujo_caja);
+            renderizarWaterfall(data.cobrado_desembolsado, data.flujo_caja, data.egresos_reales);
         }
 
-        function renderizarWaterfall(cobrado, egresos, flujo) {
+        function renderizarWaterfall(cobrado, ejecutado, flujoCaja) {
             const trace = {
                 type: "waterfall",
                 orientation: "v",
                 measure: ["relative", "relative", "total"],
-                x: ["Cobrado Acumulado", "Egresos Reales", "Flujo de Caja Neto"],
-                y: [cobrado, -egresos, flujo],
+                x: ["Cobrado Acumulado", "Ejecutado", "Flujo de Caja"],
+                y: [cobrado, -ejecutado, flujoCaja],
                 connector: { line: { color: "rgba(255, 255, 255, 0.2)", width: 1, dash: "dot" } },
                 decreasing: { marker: { color: "#f43f5e" } },
                 increasing: { marker: { color: "#10b981" } },
                 totals: { marker: { color: "#3b82f6" } },
                 textposition: "outside",
-                text: [formatearUSD(cobrado), formatearUSD(-egresos), formatearUSD(flujo)],
+                text: [formatearUSD(cobrado), formatearUSD(-ejecutado), formatearUSD(flujoCaja)],
                 hoverinfo: "x+text"
             };
 
