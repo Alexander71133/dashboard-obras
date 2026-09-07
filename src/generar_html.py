@@ -8,6 +8,7 @@ from procesar_datos import obtener_datos_obras
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RUTA_OUTPUT = BASE_DIR / "output" / "dashboard_obras.html"
+RUTA_INDEX = BASE_DIR / "index.html"
 
 def generar_dashboard():
     datos_obras = obtener_datos_obras()
@@ -24,25 +25,25 @@ def generar_dashboard():
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        body {{ font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }}
-        .glass-card {{ background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }}
+        body {{ font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }}
+        .glass-card {{ background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06); }}
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
 
     <!-- Encabezado y Seleccionador de Obras -->
-    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800 pb-6">
+    <header class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-6">
         <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-white flex items-center gap-3">
+            <h1 class="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-3">
                 <i class="fa-solid fa-chart-pie text-blue-500"></i>
                 Inversora Macroandes - Dashboard Control de Obras
             </h1>
-            <p class="text-sm text-slate-400 mt-1">Analisis financiero de Proyectos en Tiempo Real</p>
+            <p class="text-sm text-slate-500 mt-1">Analisis financiero de Proyectos en Tiempo Real</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <label for="selectObra" class="text-sm font-medium text-slate-300">Seleccionar Obra:</label>
-            <select id="selectObra" onchange="actualizarDashboard()" class="bg-slate-800 text-white border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <label for="selectObra" class="text-sm font-medium text-slate-700">Seleccionar Obra:</label>
+            <select id="selectObra" onchange="actualizarDashboard()" class="bg-white text-slate-700 border border-slate-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             </select>
         </div>
     </header>
@@ -54,42 +55,42 @@ def generar_dashboard():
             <!-- 1. Monto Contrato -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Monto Contrato</p>
-                <h3 class="text-2xl font-bold text-white mt-2" id="kpi-monto">$0,00</h3>
+                <h3 class="text-2xl font-bold text-slate-900 mt-2" id="kpi-monto">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Valor contractual acordado</p>
             </div>
 
             <!-- 2. Ejecutado -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Ejecutado</p>
-                <h3 class="text-2xl font-bold text-blue-400 mt-2" id="kpi-estimado">$0,00</h3>
+                <h3 class="text-2xl font-bold text-blue-600 mt-2" id="kpi-estimado">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Monto de avance financiero ejecutado</p>
             </div>
 
             <!-- 3. Desembolsado -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">3. Desembolsado</p>
-                <h3 class="text-2xl font-bold text-emerald-400 mt-2" id="kpi-cobrado">$0,00</h3>
+                <h3 class="text-2xl font-bold text-emerald-600 mt-2" id="kpi-cobrado">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Total recaudado efectivamente</p>
             </div>
 
             <!-- 4. Flujo de Caja -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">4. FLUJO DE CAJA</p>
-                <h3 class="text-2xl font-bold text-rose-400 mt-2" id="kpi-egresos">$0,00</h3>
-                <p class="text-xs text-slate-500 mt-1">Efectivo en caja</p>
+                <h3 class="text-2xl font-bold text-rose-600 mt-2" id="kpi-flujo-caja">$0,00</h3>
+                <p class="text-xs text-slate-500 mt-1">Desembolsado menos ejecutado</p>
             </div>
 
             <!-- 5. Por Desembolsar -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">5. Por Cobrar</p>
-                <h3 class="text-2xl font-bold text-amber-400 mt-2" id="kpi-por-cobrar">$0,00</h3>
+                <h3 class="text-2xl font-bold text-amber-600 mt-2" id="kpi-por-cobrar">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Saldo pendiente por cobrar</p>
             </div>
 
             <!-- 6. Avance Financiero (%) -->
             <div class="glass-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">6. Avance Financiero (%)</p>
-                <h3 class="text-2xl font-bold text-indigo-400 mt-2" id="kpi-avance-pct">0,00%</h3>
+                <h3 class="text-2xl font-bold text-indigo-600 mt-2" id="kpi-avance-pct">0,00%</h3>
                 <p class="text-xs text-slate-500 mt-1">Porcentaje cobrado sobre el contrato</p>
             </div>
 
@@ -98,7 +99,7 @@ def generar_dashboard():
         <!-- 7. Diagrama en Cascada (Waterfall) -->
         <div class="glass-card p-6 rounded-xl">
             <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
                     <i class="fa-solid fa-[#3b82f6] fa-chart-bar text-blue-400"></i>
                     7. Conciliación de Flujo de Caja
                 </h2>
@@ -142,36 +143,36 @@ def generar_dashboard():
             document.getElementById('kpi-monto').textContent = formatearUSD(data.monto_contrato);
             document.getElementById('kpi-estimado').textContent = formatearUSD(data.estimado_ejecutado);
             document.getElementById('kpi-cobrado').textContent = formatearUSD(data.cobrado_desembolsado);
-            document.getElementById('kpi-egresos').textContent = formatearUSD(data.egresos_reales);
+            document.getElementById('kpi-flujo-caja').textContent = formatearUSD(data.flujo_caja);
             document.getElementById('kpi-por-cobrar').textContent = formatearUSD(data.por_cobrar);
             document.getElementById('kpi-avance-pct').textContent = data.avance_financiero_pct.toFixed(2) + '%';
 
             // Renderizar Gráfico 7: Waterfall Chart
-            renderizarWaterfall(data.cobrado_desembolsado, data.flujo_caja, data.egresos_reales);
+            renderizarWaterfall(data.cobrado_desembolsado, data.egresos_reales, data.flujo_caja);
         }}
 
-        function renderizarWaterfall(cobrado, ejecutado, flujoCaja) {{
+        function renderizarWaterfall(cobrado, egresos, flujoCaja) {{
             const trace = {{
                 type: "waterfall",
                 orientation: "v",
                 measure: ["relative", "relative", "total"],
-                x: ["Cobrado Acumulado", "Ejecutado", "Flujo de Caja"],
-                y: [cobrado, -ejecutado, flujoCaja],
-                connector: {{ line: {{ color: "rgba(255, 255, 255, 0.2)", width: 1, dash: "dot" }} }},
+                x: ["Desembolsado", "Ejecutado", "Flujo de Caja"],
+                y: [cobrado, -egresos, flujoCaja],
+                connector: {{ line: {{ color: "#cbd5e1", width: 1, dash: "dot" }} }},
                 decreasing: {{ marker: {{ color: "#f43f5e" }} }},
                 increasing: {{ marker: {{ color: "#10b981" }} }},
                 totals: {{ marker: {{ color: "#3b82f6" }} }},
                 textposition: "outside",
-                text: [formatearUSD(cobrado), formatearUSD(-ejecutado), formatearUSD(flujoCaja)],
+                text: [formatearUSD(cobrado), formatearUSD(-egresos), formatearUSD(flujoCaja)],
                 hoverinfo: "x+text"
             }};
 
             const layout = {{
                 paper_bgcolor: 'rgba(0,0,0,0)',
                 plot_bgcolor: 'rgba(0,0,0,0)',
-                font: {{ color: '#94a3b8', family: 'Inter' }},
-                xaxis: {{ tickfont: {{ color: '#e2e8f0', size: 12 }} }},
-                yaxis: {{ title: 'Monto ($ USD)', gridcolor: '#334155', zerolinecolor: '#475569' }},
+                font: {{ color: '#334155', family: 'Inter' }},
+                xaxis: {{ tickfont: {{ color: '#475569', size: 12 }} }},
+                yaxis: {{ title: 'Monto ($ USD)', gridcolor: '#e2e8f0', zerolinecolor: '#94a3b8' }},
                 margin: {{ t: 30, b: 40, l: 60, r: 20 }},
                 autosize: true
             }};
@@ -190,7 +191,10 @@ def generar_dashboard():
     with open(RUTA_OUTPUT, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-    print(f"¡ÉXITO! Dashboard generado correctamente en: {RUTA_OUTPUT}")
+    with open(RUTA_INDEX, "w", encoding="utf-8") as f:
+        f.write(html_content)
+
+    print(f"¡ÉXITO! Dashboards generados correctamente en: {RUTA_OUTPUT} y {RUTA_INDEX}")
 
 if __name__ == "__main__":
     generar_dashboard()
