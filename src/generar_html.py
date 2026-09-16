@@ -129,7 +129,7 @@ def generar_dashboard():
 
         function obtenerObrasDisponibles() {{
             return Object.entries(datosProyectos).filter(([obra, data]) => {{
-                if (obra === 'CONSOLIDADO OBRAS') return false;
+                if (obra === 'CONSOLIDADO OBRAS') return true;
                 if (data.estado === 'CULMINADA') return estadoSelector.mostrarCulminadas;
                 return true;
             }});
@@ -171,7 +171,9 @@ def generar_dashboard():
             select.appendChild(optionVerCulminadas);
 
             if (obras.length > 0) {{
-                const valorInicial = obras.find(([obra, data]) => data.estado !== 'CULMINADA')?.[0] || obras[0][0];
+                const valorInicial = obras.find(([obra, data]) => obra !== 'CONSOLIDADO OBRAS' && data.estado !== 'CULMINADA')?.[0]
+                    || obras.find(([obra]) => obra === 'CONSOLIDADO OBRAS')?.[0]
+                    || obras[0][0];
                 select.value = valorInicial;
                 actualizarDashboard();
             }}
