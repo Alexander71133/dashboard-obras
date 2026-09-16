@@ -85,6 +85,12 @@ def obtener_datos_obras():
         else:
             avance_financiero_pct = (cobrado / monto_contrato * 100) if monto_contrato > 0 else 0.0
 
+        estado = "ACTIVA"
+        fecha_cierre = None
+        if nombre_obra.upper() == "FATIMA":
+            estado = "CULMINADA"
+            fecha_cierre = "2026-09-15"
+
         proyectos[nombre_obra] = {
             "monto_contrato": monto_contrato,
             "estimado_ejecutado": estimado,
@@ -92,7 +98,9 @@ def obtener_datos_obras():
             "egresos_reales": egresos,
             "por_cobrar": por_cobrar,
             "avance_financiero_pct": round(avance_financiero_pct, 2),
-            "flujo_caja": flujo_caja
+            "flujo_caja": flujo_caja,
+            "estado": estado,
+            "fecha_cierre": fecha_cierre
         }
 
     return proyectos

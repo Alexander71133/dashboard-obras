@@ -27,6 +27,10 @@ def generar_dashboard():
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         body {{ font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }}
         .glass-card {{ background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06); }}
+        .kpi-card {{ transition: all 0.2s ease; }}
+        .kpi-card.obra-culminada {{ background: #f8fafc; border: 1px dashed #94a3b8; }}
+        .badge-obra-estado {{ display: none; }}
+        .badge-obra-estado.visible {{ display: inline-flex; align-items: center; justify-content: center; padding: 0.2rem 0.6rem; border-radius: 9999px; background-color: #dcfce7; color: #166534; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.6rem; }}
     </style>
 </head>
 <body class="p-4 md:p-8 min-h-screen">
@@ -53,42 +57,43 @@ def generar_dashboard():
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8">
 
             <!-- 1. Monto Contrato -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">1. Monto Contrato</p>
-                <h3 class="text-2xl font-bold text-slate-900 mt-2" id="kpi-monto">$0,00</h3>
+                <div id="badge-obra-estado" class="badge-obra-estado">OBRA CULMINADA</div>
+                <h3 class="text-2xl font-bold text-slate-900" id="kpi-monto">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Valor contractual acordado</p>
             </div>
 
             <!-- 2. Ejecutado -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">2. Ejecutado</p>
                 <h3 class="text-2xl font-bold text-blue-600 mt-2" id="kpi-estimado">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Monto de avance financiero ejecutado</p>
             </div>
 
             <!-- 3. Desembolsado -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">3. Desembolsado</p>
                 <h3 class="text-2xl font-bold text-emerald-600 mt-2" id="kpi-cobrado">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Total recaudado efectivamente</p>
             </div>
 
             <!-- 4. Flujo de Caja -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">4. FLUJO DE CAJA</p>
                 <h3 class="text-2xl font-bold text-rose-600 mt-2" id="kpi-flujo-caja">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Desembolsado menos ejecutado</p>
             </div>
 
             <!-- 5. Por Desembolsar -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">5. Por Cobrar</p>
                 <h3 class="text-2xl font-bold text-amber-600 mt-2" id="kpi-por-cobrar">$0,00</h3>
                 <p class="text-xs text-slate-500 mt-1">Saldo pendiente por cobrar</p>
             </div>
 
             <!-- 6. Avance Financiero (%) -->
-            <div class="glass-card p-5 rounded-xl">
+            <div class="glass-card kpi-card p-5 rounded-xl">
                 <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">6. Avance Financiero (%)</p>
                 <h3 class="text-2xl font-bold text-indigo-600 mt-2" id="kpi-avance-pct">0,00%</h3>
                 <p class="text-xs text-slate-500 mt-1">Porcentaje cobrado sobre el contrato</p>
@@ -110,36 +115,99 @@ def generar_dashboard():
 
     <script>
         const datosProyectos = {datos_json};
+        const estadoSelector = {{ mostrarCulminadas: false }};
 
         function formatearUSD(valor) {{
             return new Intl.NumberFormat('en-US', {{ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }}).format(valor);
         }}
 
+        function formatearFecha(fecha) {{
+            if (!fecha) return '';
+            const [anio, mes, dia] = fecha.split('-');
+            return `${{dia}}/${{mes}}/${{anio}}`;
+        }}
+
+        function obtenerObrasDisponibles() {{
+            return Object.entries(datosProyectos).filter(([obra, data]) => {{
+                if (obra === 'CONSOLIDADO OBRAS') return false;
+                if (data.estado === 'CULMINADA') return estadoSelector.mostrarCulminadas;
+                return true;
+            }});
+        }}
+
+        function obtenerEtiquetaObra(obra, data) {{
+            if (data && data.estado === 'CULMINADA') {{
+                return `${{obra}} - CULMINADA ${{formatearFecha(data.fecha_cierre)}}`;
+            }}
+            return obra;
+        }}
+
         function inicializarSelector() {{
             const select = document.getElementById('selectObra');
             select.innerHTML = '';
-            
-            const obras = Object.keys(datosProyectos);
-            obras.forEach(obra => {{
+
+            const obras = obtenerObrasDisponibles();
+            obras.forEach(([obra, data]) => {{
                 const option = document.createElement('option');
                 option.value = obra;
-                option.textContent = obra;
+                option.textContent = obtenerEtiquetaObra(obra, data);
+                if (data && data.estado === 'CULMINADA') {{
+                    option.style.color = '#64748b';
+                    option.style.fontStyle = 'italic';
+                }}
                 select.appendChild(option);
             }});
 
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = '──────────────────────';
+            separator.style.color = '#94a3b8';
+            select.appendChild(separator);
+
+            const optionVerCulminadas = document.createElement('option');
+            optionVerCulminadas.value = '__VER_CULMINADAS__';
+            optionVerCulminadas.textContent = '--- Ver obras culminadas ---';
+            optionVerCulminadas.style.color = '#0f172a';
+            select.appendChild(optionVerCulminadas);
+
             if (obras.length > 0) {{
-                select.value = obras[0];
+                const valorInicial = obras.find(([obra, data]) => data.estado !== 'CULMINADA')?.[0] || obras[0][0];
+                select.value = valorInicial;
                 actualizarDashboard();
             }}
         }}
 
         function actualizarDashboard() {{
-            const obraSeleccionada = document.getElementById('selectObra').value;
-            const data = datosProyectos[obraSeleccionada];
+            const select = document.getElementById('selectObra');
+            const obraSeleccionada = select.value;
 
+            if (obraSeleccionada === '__VER_CULMINADAS__') {{
+                estadoSelector.mostrarCulminadas = true;
+                inicializarSelector();
+                const primeraCulminada = Object.keys(datosProyectos).find((obra) => datosProyectos[obra].estado === 'CULMINADA' && obra !== 'CONSOLIDADO OBRAS');
+                if (primeraCulminada) {{
+                    select.value = primeraCulminada;
+                }}
+                actualizarDashboard();
+                return;
+            }}
+
+            const data = datosProyectos[obraSeleccionada];
             if (!data) return;
 
-            // Actualizar Tarjetas 1 a 6
+            const esCulminada = data.estado === 'CULMINADA';
+            document.querySelectorAll('.kpi-card').forEach((card) => {{
+                card.classList.toggle('obra-culminada', esCulminada);
+            }});
+
+            const badge = document.getElementById('badge-obra-estado');
+            if (esCulminada) {{
+                badge.textContent = 'OBRA CULMINADA';
+                badge.classList.add('visible');
+            }} else {{
+                badge.classList.remove('visible');
+            }}
+
             document.getElementById('kpi-monto').textContent = formatearUSD(data.monto_contrato);
             document.getElementById('kpi-estimado').textContent = formatearUSD(data.estimado_ejecutado);
             document.getElementById('kpi-cobrado').textContent = formatearUSD(data.cobrado_desembolsado);
@@ -147,7 +215,6 @@ def generar_dashboard():
             document.getElementById('kpi-por-cobrar').textContent = formatearUSD(data.por_cobrar);
             document.getElementById('kpi-avance-pct').textContent = data.avance_financiero_pct.toFixed(2) + '%';
 
-            // Renderizar Gráfico 7: Waterfall Chart
             renderizarWaterfall(data.cobrado_desembolsado, data.egresos_reales, data.flujo_caja);
         }}
 
