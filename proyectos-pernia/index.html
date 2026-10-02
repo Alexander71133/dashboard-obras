@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f4f6f4">
+  <title>Proyectos Pernia | Inversora Macroandes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #202923;
+      --muted: #748078;
+      --line: #e5eae5;
+      --paper: #ffffff;
+      --canvas: #f4f6f4;
+      --green: #176b4d;
+      --green-soft: #e8f3ed;
+      --amber: #986412;
+      --amber-soft: #fff4d9;
+      --blue: #326c91;
+      --blue-soft: #eaf3f8;
+      --red: #a04d4d;
+      --red-soft: #faeeee;
+      --shadow: 0 12px 32px rgba(35, 54, 42, .055);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-family: "DM Sans", "Segoe UI", sans-serif; font-size: 14px; }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; }
+    .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 2; width: 238px; display: flex; flex-direction: column; padding: 23px 15px 18px; background: #fff; border-right: 1px solid var(--line); }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 27px; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: var(--green); font: 800 16px "Manrope", sans-serif; }
+    .brand-name { font: 800 13px "Manrope", sans-serif; letter-spacing: 0; }
+    .brand-sub { margin-top: 2px; color: var(--muted); font-size: 10px; }
+    .nav-label { padding: 7px 10px 9px; color: #9aa49c; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .nav-item { display: flex; align-items: center; gap: 11px; min-height: 39px; padding: 0 11px; color: #68736b; border-radius: 6px; text-decoration: none; font-size: 12px; }
+    .nav-item.active { color: var(--green); background: var(--green-soft); font-weight: 700; }
+    .nav-glyph { width: 17px; text-align: center; font-size: 15px; }
+    .nav-count { margin-left: auto; color: #8b968e; font-size: 11px; }
+    .sidebar-footer { margin-top: auto; border-top: 1px solid var(--line); padding: 15px 10px 0; color: #879189; font-size: 10px; line-height: 1.6; }
+    .main { min-height: 100vh; margin-left: 238px; }
+    .topbar { height: 58px; display: flex; align-items: center; justify-content: space-between; padding: 0 36px; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.8); }
+    .crumb { color: #7b867e; font-size: 11px; }
+    .crumb strong { color: #303b33; font-weight: 600; }
+    .top-right { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 11px; }
+    .live-dot { width: 7px; height: 7px; display: inline-block; margin-right: 6px; border-radius: 50%; background: #59a47c; }
+    .avatar { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid #dce5dd; border-radius: 50%; color: var(--green); background: #edf5ef; font-size: 10px; font-weight: 700; }
+    .content { max-width: 1440px; margin: 0 auto; padding: 31px 36px 46px; }
+    .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 0; text-transform: uppercase; }
+    h1 { margin: 0; font: 800 26px/1.2 "Manrope", sans-serif; letter-spacing: 0; }
+    .subtitle { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+    .updated { color: #7e8981; font-size: 10px; white-space: nowrap; }
+    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 21px; }
+    .stat { min-height: 101px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); box-shadow: 0 2px 8px rgba(35,54,42,.025); }
+    .stat-label { color: #758078; font-size: 11px; font-weight: 600; }
+    .stat-value { margin-top: 10px; font: 800 22px/1 "Manrope", sans-serif; letter-spacing: 0; }
+    .stat-note { margin-top: 7px; color: #8b958e; font-size: 10px; }
+    .stat-mark { float: right; width: 27px; height: 27px; display: grid; place-items: center; border-radius: 6px; color: var(--green); background: var(--green-soft); font-size: 14px; }
+    .board { overflow: hidden; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); box-shadow: var(--shadow); }
+    .board-head { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 12px 18px; border-bottom: 1px solid var(--line); }
+    .board-title { display: flex; align-items: center; gap: 9px; font: 700 13px "Manrope", sans-serif; }
+    .board-title::before { width: 3px; height: 18px; content: ""; border-radius: 4px; background: var(--green); }
+    .board-tools { display: flex; align-items: center; gap: 11px; }
+    .search-wrap { position: relative; }
+    .search-icon { position: absolute; top: 50%; left: 11px; color: #8b968e; transform: translateY(-50%); font-size: 15px; }
+    .search { width: 214px; height: 33px; padding: 0 10px 0 32px; border: 1px solid #e2e8e2; border-radius: 5px; outline: none; color: var(--ink); background: #fff; font-size: 11px; }
+    .search:focus { border-color: #82ae95; box-shadow: 0 0 0 3px rgba(23,107,77,.08); }
+    .filter-tabs { display: flex; gap: 2px; padding: 3px; border: 1px solid #edf0ed; border-radius: 5px; background: #f7f8f7; }
+    .filter-button { min-height: 25px; padding: 0 9px; border: 0; border-radius: 3px; color: #79837c; background: transparent; cursor: pointer; font-size: 10px; }
+    .filter-button.active { color: #28523a; background: white; box-shadow: 0 1px 4px rgba(25,45,30,.1); font-weight: 700; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 940px; border-collapse: collapse; text-align: left; }
+    th { height: 38px; padding: 0 11px; border-bottom: 1px solid var(--line); color: #8a958d; background: #fbfcfb; font-size: 9px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+    th:first-child, td:first-child { padding-left: 19px; }
+    td { height: 64px; padding: 9px 11px; border-bottom: 1px solid #edf0ed; color: #566159; font-size: 11px; white-space: nowrap; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr { transition: background .16s ease; }
+    tbody tr:hover { background: #fbfdfb; }
+    .project-cell { width: 29%; min-width: 230px; }
+    .project-link { max-width: 100%; padding: 0; overflow: hidden; border: 0; color: #29372d; background: none; cursor: pointer; text-align: left; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 700; }
+    .project-link:hover { color: var(--green); }
+    .project-folder { overflow: hidden; margin-top: 4px; color: #929b94; text-overflow: ellipsis; font-size: 9px; }
+    .pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 4px; font-size: 9px; font-weight: 700; }
+    .pill--listo { color: var(--green); background: var(--green-soft); }
+    .pill--curso { color: var(--amber); background: var(--amber-soft); }
+    .pill--detenido { color: var(--red); background: var(--red-soft); }
+    .pill--cronograma { color: var(--blue); background: var(--blue-soft); }
+    .progress-cell { min-width: 112px; }
+    .progress-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: #526057; font-size: 10px; }
+    .progress-track { height: 4px; margin-top: 7px; overflow: hidden; border-radius: 4px; background: #edf0ed; }
+    .progress-fill { height: 100%; border-radius: inherit; background: #4a9b70; }
+    .progress-fill.financial { background: #5286a0; }
+    .amount { color: #354139; font-variant-numeric: tabular-nums; }
+    .muted-amount { color: #8a958d; font-variant-numeric: tabular-nums; }
+    .files-button { display: inline-flex; align-items: center; gap: 5px; padding: 5px 7px; border: 1px solid #e5eae5; border-radius: 4px; color: #5e6b62; background: white; cursor: pointer; font-size: 10px; }
+    .files-button:hover { border-color: #b9d2c1; color: var(--green); background: #f8fcf9; }
+    .empty { display: none; padding: 35px 15px; color: var(--muted); text-align: center; }
+    .empty.visible { display: block; }
+    .privacy-note { display: flex; align-items: flex-start; gap: 9px; margin-top: 14px; padding: 11px 14px; border: 1px solid #e7ece7; border-radius: 5px; color: #748078; background: #fafbfa; font-size: 10px; line-height: 1.5; }
+    .privacy-note strong { color: #536058; }
+    .overlay { position: fixed; inset: 0; z-index: 5; visibility: hidden; background: rgba(23,34,27,.28); opacity: 0; transition: opacity .2s ease, visibility .2s; }
+    .overlay.open { visibility: visible; opacity: 1; }
+    .drawer { position: fixed; inset: 0 0 0 auto; z-index: 6; width: min(560px, 100%); overflow-y: auto; padding: 26px 28px 36px; border-left: 1px solid var(--line); background: #fff; box-shadow: -16px 0 45px rgba(28,43,33,.12); transform: translateX(102%); transition: transform .24s ease; }
+    .drawer.open { transform: translateX(0); }
+    body.drawer-open { overflow: hidden; }
+    .drawer-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+    .drawer-kicker { margin: 0 0 8px; color: var(--green); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .drawer h2 { margin: 0; font: 800 20px/1.35 "Manrope", sans-serif; letter-spacing: 0; }
+    .close-button { width: 32px; height: 32px; flex: 0 0 32px; border: 1px solid #e5eae5; border-radius: 5px; background: #fff; cursor: pointer; font-size: 18px; }
+    .drawer-status { margin-top: 13px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 23px 0; }
+    .detail-stat { padding: 12px; border: 1px solid var(--line); border-radius: 5px; background: #fcfdfc; }
+    .detail-stat span { display: block; color: #7d8980; font-size: 9px; }
+    .detail-stat strong { display: block; margin-top: 7px; color: #303c33; font: 700 13px "Manrope", sans-serif; }
+    .section-title { display: flex; align-items: center; justify-content: space-between; margin: 22px 0 11px; font: 700 12px "Manrope", sans-serif; }
+    .section-count { color: #8b968e; font: 500 10px "DM Sans", sans-serif; }
+    .detail-progress { display: grid; gap: 15px; padding: 15px; border: 1px solid var(--line); border-radius: 5px; }
+    .detail-progress .progress-track { height: 6px; }
+    .file-list { display: grid; gap: 8px; }
+    .file-item { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 10px; border: 1px solid var(--line); border-radius: 5px; color: #536057; text-decoration: none; }
+    .file-item:hover { border-color: #b7d2c0; background: #fbfdfb; }
+    .file-icon { width: 30px; height: 34px; flex: 0 0 30px; display: grid; place-items: center; border-radius: 4px; color: #a64d4d; background: #faeeee; font-size: 9px; font-weight: 800; }
+    .file-icon.image { color: #457a60; background: #eaf4ed; }
+    .file-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10px; }
+    .file-open { margin-left: auto; color: #87938a; font-size: 10px; }
+    .photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-top: 9px; }
+    .photo { aspect-ratio: 1.25; overflow: hidden; border: 1px solid var(--line); border-radius: 4px; background: #f4f6f4; }
+    .photo img { width: 100%; height: 100%; display: block; object-fit: cover; transition: transform .2s ease; }
+    .photo:hover img { transform: scale(1.04); }
+    .no-files { padding: 18px; border: 1px dashed #dfe6df; border-radius: 5px; color: #849087; text-align: center; font-size: 11px; }
+    @media (max-width: 1000px) {
+      .sidebar { width: 205px; }
+      .main { margin-left: 205px; }
+      .content { padding-right: 22px; padding-left: 22px; }
+      .topbar { padding: 0 22px; }
+      .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .board-head { align-items: flex-start; flex-direction: column; }
+      .board-tools { width: 100%; justify-content: space-between; }
+    }
+    @media (max-width: 680px) {
+      .sidebar { position: static; width: auto; height: 54px; flex-direction: row; align-items: center; padding: 0 15px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { padding: 0; }
+      .brand-mark { width: 30px; height: 30px; }
+      .sidebar .nav-label, .sidebar .nav-item, .sidebar-footer { display: none; }
+      .main { margin-left: 0; }
+      .topbar { height: 44px; padding: 0 16px; }
+      .top-right { gap: 8px; }
+      .updated { display: none; }
+      .content { padding: 23px 14px 30px; }
+      .page-heading { align-items: flex-start; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+      h1 { font-size: 22px; }
+      .stats { gap: 8px; margin-bottom: 14px; }
+      .stat { min-height: 91px; padding: 13px; }
+      .stat-value { font-size: 19px; }
+      .board-head { padding: 13px; }
+      .board-tools { align-items: stretch; flex-direction: column; }
+      .search-wrap, .search { width: 100%; }
+      .filter-tabs { align-self: flex-start; }
+      .drawer { padding: 21px 17px 30px; }
+      .detail-grid { gap: 6px; }
+      .detail-stat { padding: 10px 8px; }
+      .detail-stat strong { font-size: 11px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Navegación principal">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">M</div>
+        <div><div class="brand-name">INVERSORA MACROANDES</div><div class="brand-sub">Gestión de proyectos</div></div>
+      </div>
+      <div class="nav-label">Espacio de trabajo</div>
+      <a class="nav-item" href="#resumen"><span class="nav-glyph" aria-hidden="true">⌂</span>Resumen</a>
+      <a class="nav-item active" href="#proyectos" aria-current="page"><span class="nav-glyph" aria-hidden="true">▦</span>Proyectos Pernia<span class="nav-count" id="nav-count">0</span></a>
+      <div class="sidebar-footer">INFORMES DE OBRAS<br>Finca Pernia de la Montaña</div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="crumb">Portafolio <span aria-hidden="true">/</span> <strong>Proyectos Pernia</strong></div>
+        <div class="top-right"><span><i class="live-dot" aria-hidden="true"></i>Vista de cliente</span><div class="avatar" aria-label="Inversora Macroandes">IM</div></div>
+      </div>
+
+      <main class="content" id="resumen">
+        <section class="page-heading">
+          <div><p class="eyebrow">Inversora Macroandes · Informes de obras</p><h1>Proyectos Pernia</h1><p class="subtitle">Seguimiento de avance, presupuesto y entregables de obra.</p></div>
+          <div class="updated" id="update-date"></div>
+        </section>
+
+        <section class="stats" aria-label="Resumen del portafolio">
+          <article class="stat"><span class="stat-mark" aria-hidden="true">▤</span><div class="stat-label">Presupuesto total</div><div class="stat-value" id="total-budget">—</div><div class="stat-note">Presupuesto aprobado</div></article>
+          <article class="stat"><span class="stat-mark" aria-hidden="true">◷</span><div class="stat-label">Monto por pagar</div><div class="stat-value" id="total-due">—</div><div class="stat-note">Saldo pendiente del portafolio</div></article>
+          <article class="stat"><span class="stat-mark" aria-hidden="true">↗</span><div class="stat-label">En curso</div><div class="stat-value" id="active-count">—</div><div class="stat-note">Proyectos con trabajos activos</div></article>
+          <article class="stat"><span class="stat-mark" aria-hidden="true">✓</span><div class="stat-label">Listos</div><div class="stat-value" id="ready-count">—</div><div class="stat-note">Proyectos finalizados</div></article>
+        </section>
+
+        <section class="board" id="proyectos" aria-label="Tablero de proyectos">
+          <div class="board-head">
+            <div class="board-title">Todos los proyectos <span class="nav-count" id="result-count">0</span></div>
+            <div class="board-tools">
+              <div class="filter-tabs" role="group" aria-label="Filtrar por estado">
+                <button class="filter-button active" type="button" data-filter="Todos">Todos</button>
+                <button class="filter-button" type="button" data-filter="En Curso">En curso</button>
+                <button class="filter-button" type="button" data-filter="Listo">Listos</button>
+              </div>
+              <label class="search-wrap"><span class="search-icon" aria-hidden="true">⌕</span><input class="search" id="search" type="search" placeholder="Buscar un proyecto" aria-label="Buscar un proyecto"></label>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th class="project-cell">Proyecto</th><th>Estado</th><th>Avance físico</th><th>Avance financiero</th><th>Presupuesto</th><th>Desembolsado</th><th>Por pagar</th><th>Cronograma</th><th>Archivos</th></tr></thead>
+              <tbody id="project-rows"></tbody>
+            </table>
+            <div class="empty" id="empty-state">No hay proyectos que coincidan con la búsqueda.</div>
+          </div>
+        </section>
+
+        <div class="privacy-note"><span aria-hidden="true">ⓘ</span><span><strong>Acceso a documentos:</strong> este tablero y sus archivos están disponibles para cualquier persona que tenga el enlace público.</span></div>
+      </main>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title" aria-hidden="true">
+    <div id="drawer-content"></div>
+  </aside>
+  <script src="./proyectos.js"></script>
+  <script>
+    const proyectos = window.MACROANDES_PROJECTS || [];
+    const moneda = new Intl.NumberFormat('es-VE', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 });
+    const porcentajeFmt = new Intl.NumberFormat('es-VE', { maximumFractionDigits: 1 });
+    const rows = document.getElementById('project-rows');
+    const search = document.getElementById('search');
+    const drawer = document.getElementById('drawer');
+    const overlay = document.getElementById('overlay');
+    let filtroActivo = 'Todos';
+
+    function esc(value) {
+      return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+    }
+
+    function dinero(value) { return moneda.format(Number(value) || 0); }
+    function percent(value) { return `${porcentajeFmt.format(Number(value) || 0)}%`; }
+    function statusClass(value) {
+      if (value === 'Listo') return 'pill--listo';
+      if (value === 'Detenido') return 'pill--detenido';
+      return 'pill--curso';
+    }
+
+    function barra(value, financial = false) {
+      const safeValue = Math.max(0, Math.min(100, Number(value) || 0));
+      return `<div class="progress-cell"><div class="progress-top"><span>${percent(safeValue)}</span></div><div class="progress-track" role="progressbar" aria-valuenow="${safeValue}" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill ${financial ? 'financial' : ''}" style="width:${safeValue}%"></div></div></div>`;
+    }
+
+    function actualizarResumen() {
+      const presupuesto = proyectos.reduce((sum, item) => sum + item.budget, 0);
+      const pendiente = proyectos.reduce((sum, item) => sum + item.due, 0);
+      document.getElementById('total-budget').textContent = dinero(presupuesto);
+      document.getElementById('total-due').textContent = dinero(pendiente);
+      document.getElementById('active-count').textContent = proyectos.filter((item) => item.status === 'En Curso').length;
+      document.getElementById('ready-count').textContent = proyectos.filter((item) => item.status === 'Listo').length;
+      document.getElementById('nav-count').textContent = proyectos.length;
+      document.getElementById('update-date').textContent = `${proyectos.length} proyectos · Datos del tablero de control`;
+    }
+
+    function proyectosFiltrados() {
+      const consulta = search.value.trim().toLocaleLowerCase('es');
+      return proyectos.filter((item) => {
+        const coincideEstado = filtroActivo === 'Todos' || item.status === filtroActivo;
+        const coincideTexto = !consulta || `${item.name} ${item.folder} ${item.status}`.toLocaleLowerCase('es').includes(consulta);
+        return coincideEstado && coincideTexto;
+      });
+    }
+
+    function renderizarTabla() {
+      const filtrados = proyectosFiltrados();
+      rows.innerHTML = filtrados.map((item) => {
+        const originalIndex = proyectos.indexOf(item);
+        return `<tr>
+          <td class="project-cell"><button class="project-link" type="button" data-open="${originalIndex}">${esc(item.name)}</button><div class="project-folder">${esc(item.folder)}</div></td>
+          <td><span class="pill ${statusClass(item.status)}">${esc(item.status)}</span></td>
+          <td>${barra(item.physical)}</td>
+          <td>${barra(item.financial, true)}</td>
+          <td class="amount">${dinero(item.budget)}</td>
+          <td class="amount">${dinero(item.paid)}</td>
+          <td class="muted-amount">${dinero(item.due)}</td>
+          <td><span class="pill pill--cronograma">${esc(item.schedule)}</span></td>
+          <td><button class="files-button" type="button" data-open="${originalIndex}" aria-label="Abrir ${item.files.length} archivos de ${esc(item.name)}">▧ ${item.files.length}</button></td>
+        </tr>`;
+      }).join('');
+      document.getElementById('result-count').textContent = filtrados.length;
+      document.getElementById('empty-state').classList.toggle('visible', filtrados.length === 0);
+      rows.querySelectorAll('[data-open]').forEach((button) => button.addEventListener('click', () => abrirProyecto(proyectos[Number(button.dataset.open)])));
+    }
+
+    function renderizarArchivos(files) {
+      if (!files.length) return '<div class="no-files">No hay archivos vinculados a este proyecto.</div>';
+      const images = files.filter((file) => file.type === 'image');
+      const docs = files.filter((file) => file.type !== 'image');
+      const imageLinks = images.map((file) => `<a class="photo" href="${esc(file.url)}" target="_blank" rel="noopener" aria-label="Abrir foto: ${esc(file.name)}"><img src="${esc(file.url)}" alt="${esc(file.name)}" loading="lazy"></a>`).join('');
+      const documentLinks = docs.map((file) => `<a class="file-item" href="${esc(file.url)}" target="_blank" rel="noopener"><span class="file-icon">PDF</span><span class="file-name">${esc(file.name)}</span><span class="file-open" aria-hidden="true">↗</span></a>`).join('');
+      return `${documentLinks ? `<div class="file-list">${documentLinks}</div>` : ''}${imageLinks ? `<div class="photo-grid">${imageLinks}</div>` : ''}`;
+    }
+
+    function abrirProyecto(item) {
+      if (!item) return;
+      document.getElementById('drawer-content').innerHTML = `
+        <div class="drawer-top"><div><p class="drawer-kicker">Detalle del proyecto</p><h2 id="drawer-title">${esc(item.name)}</h2></div><button class="close-button" type="button" id="close-drawer" aria-label="Cerrar detalle">×</button></div>
+        <div class="drawer-status"><span class="pill ${statusClass(item.status)}">${esc(item.status)}</span><span class="pill pill--cronograma">${esc(item.schedule)}</span></div>
+        <div class="detail-grid"><div class="detail-stat"><span>Presupuesto</span><strong>${dinero(item.budget)}</strong></div><div class="detail-stat"><span>Desembolsado</span><strong>${dinero(item.paid)}</strong></div><div class="detail-stat"><span>Por pagar</span><strong>${dinero(item.due)}</strong></div></div>
+        <div class="section-title">Avance de obra</div>
+        <div class="detail-progress"><div><div class="progress-top"><span>Avance físico</span><strong>${percent(item.physical)}</strong></div><div class="progress-track" role="progressbar" aria-valuenow="${item.physical}" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, item.physical))}%"></div></div></div><div><div class="progress-top"><span>Avance financiero</span><strong>${percent(item.financial)}</strong></div><div class="progress-track" role="progressbar" aria-valuenow="${item.financial}" aria-valuemin="0" aria-valuemax="100"><div class="progress-fill financial" style="width:${Math.max(0, Math.min(100, item.financial))}%"></div></div></div></div>
+        <div class="section-title">Documentos y fotos <span class="section-count">${item.files.length} archivos</span></div>
+        ${renderizarArchivos(item.files)}`;
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+      drawer.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('drawer-open');
+      document.getElementById('close-drawer').focus();
+      document.getElementById('close-drawer').addEventListener('click', cerrarDrawer);
+    }
+
+    function cerrarDrawer() {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+      drawer.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('drawer-open');
+    }
+
+    document.querySelectorAll('[data-filter]').forEach((button) => button.addEventListener('click', () => {
+      filtroActivo = button.dataset.filter;
+      document.querySelectorAll('[data-filter]').forEach((tab) => tab.classList.toggle('active', tab === button));
+      renderizarTabla();
+    }));
+    search.addEventListener('input', renderizarTabla);
+    overlay.addEventListener('click', cerrarDrawer);
+    document.addEventListener('keydown', (event) => { if (event.key === 'Escape') cerrarDrawer(); });
+
+    actualizarResumen();
+    renderizarTabla();
+  </script>
+</body>
+</html>
