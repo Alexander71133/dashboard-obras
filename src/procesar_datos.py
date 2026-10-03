@@ -8,6 +8,13 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RUTA_EXCEL = BASE_DIR / "Datos" / "Gestion Proyecto Fatima.xlsx"
+RUTA_CONTROL_OBRAS = (
+    Path.home()
+    / "Dropbox"
+    / "Macroandes"
+    / "Inversora Macroandes"
+    / "Control Obras.xlsx"
+)
 
 
 def _normalizar_encabezado(valor):
@@ -31,53 +38,90 @@ def _numero(valor):
 
 def obtener_datos_obras():
     """
-    Lee el archivo Excel y retorna un diccionario formateado con los datos
-    organizados estrictamente según la secuencia analítica requerida.
+    Lee el libro fuente de Dropbox cuando está disponible; en caso contrario,
+    usa la copia de Resumen Financiero guardada en el repositorio.
     """
-    if not RUTA_EXCEL.exists():
-        raise FileNotFoundError(f"No se encontró el archivo Excel en: {RUTA_EXCEL}")
+    usar_control_obras = RUTA_CONTROL_OBRAS.is_file()
+    ruta_excel = RUTA_CONTROL_OBRAS if usar_control_obras else RUTA_EXCEL
+    hoja = "Panel_de_Control" if usar_control_obras else "Resumen Financiero"
 
-    df = pd.read_excel(RUTA_EXCEL, sheet_name="Resumen Financiero")
+    if not ruta_excel.is_file():
+        raise FileNotFoundError(f"No se encontró el archivo Excel en: {ruta_excel}")
 
-    columnas = {
-        "obra": _buscar_columna(df.columns, ("Obra",)),
-        "monto_contrato": _buscar_columna(df.columns, ("Monto Contrato",)),
-        "estimado": _buscar_columna(df.columns, ("Estimado Acumulado/Ejecutado", "Ejecutado")),
-        "cobrado": _buscar_columna(df.columns, ("Cobrado Acumulado/Desembolsado", "Desembolsado")),
-        "flujo_caja": _buscar_columna(df.columns, ("Flujo de Caja",)),
-        "egresos": _buscar_columna(df.columns, ("Egresos Reales", "Egresos")),
-        "por_cobrar": _buscar_columna(df.columns, ("Por cobrar",)),
-        "avance_cobrado": _buscar_columna(df.columns, ("% Avance Cobrado",)),
-    }
+    print(f"Fuente de datos utilizada: {ruta_excel}")
+    df = pd.read_excel(ruta_excel, sheet_name=hoja)
 
-    columnas_requeridas = ("obra", "monto_contrato", "estimado", "cobrado", "por_cobrar")
+    if usar_control_obras:
+        columnas = {
+            "obra": _buscar_columna(df.columns, ("Nombre de la Obra / Proyecto",)),
+            "monto_contrato": _buscar_columna(df.columns, ("Monto del Contrato",)),
+            "estimado": _buscar_columna(df.columns, ("Total Ejecutado",)),
+            "cobrado": _buscar_columna(df.columns, ("Total Ingresos",)),
+            "flujo_caja": _buscar_columna(df.columns, ("Utilidad Actual",)),
+            "egresos": None,
+            "por_cobrar": None,
+            "avance_cobrado": None,
+        }
+    else:
+        print(
+            "AVISO: no se encontró Control Obras.xlsx en Dropbox; "
+            "se usarán los datos guardados en el Excel del repositorio."
+        )
+        columnas = {
+            "obra": _buscar_columna(df.columns, ("Obra",)),
+            "monto_contrato": _buscar_columna(df.columns, ("Monto Contrato",)),
+            "estimado": _buscar_columna(df.columns, ("Estimado Acumulado/Ejecutado", "Ejecutado")),
+            "cobrado": _buscar_columna(df.columns, ("Cobrado Acumulado/Desembolsado", "Desembolsado")),
+            "flujo_caja": _buscar_columna(df.columns, ("Flujo de Caja",)),
+            "egresos": _buscar_columna(df.columns, ("Egresos Reales", "Egresos")),
+            "por_cobrar": _buscar_columna(df.columns, ("Por cobrar",)),
+            "avance_cobrado": _buscar_columna(df.columns, ("% Avance Cobrado",)),
+        }
+
+    columnas_requeridas = ("obra", "monto_contrato", "estimado", "cobrado")
+    if not usar_control_obras:
+        columnas_requeridas += ("por_cobrar",)
     faltantes = [nombre for nombre in columnas_requeridas if columnas[nombre] is None]
     if faltantes:
-        raise ValueError(f"Faltan encabezados en 'Resumen Financiero': {', '.join(faltantes)}")
+        raise ValueError(f"Faltan encabezados en '{hoja}': {', '.join(faltantes)}")
 
     proyectos = {}
+    nombres_dashboard = {
+        "cacute cafe": "CACUTE SUELOS CAFÉ",
+        "cacute galpon": "CACUTE SUELOS GALPON",
+    }
 
     for _, row in df.iterrows():
         valor_obra = row.get(columnas["obra"])
-        nombre_obra = str(valor_obra).strip()
-        if not nombre_obra or pd.isna(valor_obra):
+        if pd.isna(valor_obra):
             continue
+        nombre_obra = str(valor_obra).strip()
+        if not nombre_obra:
+            continue
+        if usar_control_obras:
+            nombre_obra = nombres_dashboard.get(
+                _normalizar_encabezado(nombre_obra), nombre_obra
+            )
 
         monto_contrato = _numero(row.get(columnas["monto_contrato"]))
         estimado = _numero(row.get(columnas["estimado"]))
         cobrado = _numero(row.get(columnas["cobrado"]))
-        por_cobrar = _numero(row.get(columnas["por_cobrar"]))
 
         if columnas["flujo_caja"]:
             flujo_caja = _numero(row.get(columnas["flujo_caja"]))
         else:
             flujo_caja = cobrado - _numero(row.get(columnas["egresos"]))
 
-        if columnas["egresos"]:
-            egresos = _numero(row.get(columnas["egresos"]))
+        if usar_control_obras:
+            egresos = estimado
+            por_cobrar = monto_contrato - cobrado
         else:
-            egresos = cobrado - flujo_caja
-        
+            por_cobrar = _numero(row.get(columnas["por_cobrar"]))
+            if columnas["egresos"]:
+                egresos = _numero(row.get(columnas["egresos"]))
+            else:
+                egresos = cobrado - flujo_caja
+
         # Cálculo / Extracción del Avance Financiero %
         val_pct = row.get(columnas["avance_cobrado"]) if columnas["avance_cobrado"] else None
         if val_pct is not None and not pd.isna(val_pct):
@@ -101,6 +145,26 @@ def obtener_datos_obras():
             "flujo_caja": flujo_caja,
             "estado": estado,
             "fecha_cierre": fecha_cierre
+        }
+
+    if usar_control_obras:
+        filas = list(proyectos.values())
+        monto_contrato = round(sum(fila["monto_contrato"] for fila in filas), 2)
+        estimado = round(sum(fila["estimado_ejecutado"] for fila in filas), 2)
+        cobrado = round(sum(fila["cobrado_desembolsado"] for fila in filas), 2)
+        flujo_caja = round(cobrado - estimado, 2)
+        proyectos["CONSOLIDADO OBRAS"] = {
+            "monto_contrato": monto_contrato,
+            "estimado_ejecutado": estimado,
+            "cobrado_desembolsado": cobrado,
+            "egresos_reales": estimado,
+            "por_cobrar": round(monto_contrato - cobrado, 2),
+            "avance_financiero_pct": round(cobrado / monto_contrato * 100, 2)
+            if monto_contrato > 0
+            else 0.0,
+            "flujo_caja": flujo_caja,
+            "estado": "ACTIVA",
+            "fecha_cierre": None,
         }
 
     return proyectos
