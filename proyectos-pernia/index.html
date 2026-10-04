@@ -55,7 +55,7 @@
     h1 { margin: 0; font: 800 26px/1.2 "Manrope", sans-serif; letter-spacing: 0; }
     .subtitle { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
     .updated { color: #7e8981; font-size: 10px; white-space: nowrap; }
-    .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 21px; }
+    .stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 21px; }
     .stat { min-height: 101px; padding: 17px 18px; border: 1px solid var(--line); border-radius: 7px; background: var(--paper); box-shadow: 0 2px 8px rgba(35,54,42,.025); }
     .stat-label { color: #758078; font-size: 11px; font-weight: 600; }
     .stat-value { margin-top: 10px; font: 800 22px/1 "Manrope", sans-serif; letter-spacing: 0; }
@@ -201,6 +201,7 @@
           <article class="stat"><span class="stat-mark" aria-hidden="true">◷</span><div class="stat-label">Monto por pagar</div><div class="stat-value" id="total-due">—</div><div class="stat-note">Saldo pendiente del portafolio</div></article>
           <article class="stat"><span class="stat-mark" aria-hidden="true">↗</span><div class="stat-label">En curso</div><div class="stat-value" id="active-count">—</div><div class="stat-note">Proyectos con trabajos activos</div></article>
           <article class="stat"><span class="stat-mark" aria-hidden="true">✓</span><div class="stat-label">Listos</div><div class="stat-value" id="ready-count">—</div><div class="stat-note">Proyectos finalizados</div></article>
+          <article class="stat"><span class="stat-mark" aria-hidden="true">⌕</span><div class="stat-label">En estudio</div><div class="stat-value" id="study-count">—</div><div class="stat-note">Proyectos en etapa de estudio</div></article>
         </section>
 
         <section class="board" id="proyectos" aria-label="Tablero de proyectos">
@@ -268,6 +269,7 @@
       document.getElementById('total-due').textContent = dinero(pendiente);
       document.getElementById('active-count').textContent = proyectos.filter((item) => item.status === 'En Curso').length;
       document.getElementById('ready-count').textContent = proyectos.filter((item) => item.status === 'Listo').length;
+      document.getElementById('study-count').textContent = proyectos.filter((item) => item.status === 'En Estudio').length;
       document.getElementById('nav-count').textContent = proyectos.length;
       document.getElementById('update-date').textContent = `${proyectos.length} proyectos · Datos del tablero de control`;
     }
