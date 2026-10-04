@@ -88,6 +88,7 @@
     .pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 4px; font-size: 9px; font-weight: 700; }
     .pill--listo { color: var(--green); background: var(--green-soft); }
     .pill--curso { color: var(--amber); background: var(--amber-soft); }
+    .pill--estudio { color: #806000; background: #fff1b8; }
     .pill--detenido { color: var(--red); background: var(--red-soft); }
     .pill--cronograma { color: var(--blue); background: var(--blue-soft); }
     .progress-cell { min-width: 112px; }
@@ -254,6 +255,7 @@
     function percent(value) { return `${porcentajeFmt.format(Number(value) || 0)}%`; }
     function statusClass(value) {
       if (value === 'Listo') return 'pill--listo';
+      if (value === 'En Estudio') return 'pill--estudio';
       if (value === 'Detenido') return 'pill--detenido';
       return 'pill--curso';
     }
