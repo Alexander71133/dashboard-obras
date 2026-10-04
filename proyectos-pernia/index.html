@@ -263,7 +263,7 @@
     }
 
     function actualizarResumen() {
-      const presupuesto = proyectos.reduce((sum, item) => sum + item.budget, 0);
+      const presupuesto = proyectos.reduce((sum, item) => sum + (Number.isFinite(item.budget) ? item.budget : 0), 0);
       const pendiente = proyectos.reduce((sum, item) => sum + item.due, 0);
       document.getElementById('total-budget').textContent = dinero(presupuesto);
       document.getElementById('total-due').textContent = dinero(pendiente);
