@@ -33,7 +33,7 @@
     .app { min-height: 100vh; }
     .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 2; width: 238px; display: flex; flex-direction: column; padding: 23px 15px 18px; background: #fff; border-right: 1px solid var(--line); }
     .brand { display: flex; align-items: center; gap: 11px; padding: 0 9px 27px; }
-    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: var(--green); font: 800 16px "Manrope", sans-serif; }
+    .brand-logo { width: 34px; height: 44px; flex: 0 0 auto; object-fit: contain; }
     .brand-name { font: 800 13px "Manrope", sans-serif; letter-spacing: 0; }
     .brand-sub { margin-top: 2px; color: var(--muted); font-size: 10px; }
     .nav-label { padding: 7px 10px 9px; color: #9aa49c; font-size: 10px; font-weight: 700; text-transform: uppercase; }
@@ -146,7 +146,7 @@
     @media (max-width: 680px) {
       .sidebar { position: static; width: auto; height: 54px; flex-direction: row; align-items: center; padding: 0 15px; border-right: 0; border-bottom: 1px solid var(--line); }
       .brand { padding: 0; }
-      .brand-mark { width: 30px; height: 30px; }
+      .brand-logo { width: 26px; height: 34px; }
       .sidebar .nav-label, .sidebar .nav-item, .sidebar-footer { display: none; }
       .main { margin-left: 0; }
       .topbar { height: 44px; padding: 0 16px; }
@@ -176,7 +176,7 @@
   <div class="app">
     <aside class="sidebar" aria-label="Navegación principal">
       <div class="brand">
-        <div class="brand-mark" aria-hidden="true">M</div>
+        <img class="brand-logo" src="Logo%20Macroandes.png" alt="Logo Inversora Macroandes">
         <div><div class="brand-name">INVERSORA MACROANDES</div><div class="brand-sub">Gestión de proyectos</div></div>
       </div>
       <div class="nav-label">Espacio de trabajo</div>
