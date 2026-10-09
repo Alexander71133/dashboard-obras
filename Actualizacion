@@ -1,6 +1,7 @@
 # Verifica que Dropbox terminó de sincronizar y guarda Control Obras.xlsx en Excel.
 # El generador usa ese libro fuente cuando está disponible; si falta, avisa y
 # usa la copia guardada en Datos.
+
 python src/generar_html.py
 Copy-Item output\dashboard_obras.html index.html
 
