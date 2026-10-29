@@ -51,6 +51,9 @@
     .avatar { width: 29px; height: 29px; display: grid; place-items: center; border: 1px solid #dce5dd; border-radius: 50%; color: var(--green); background: #edf5ef; font-size: 10px; font-weight: 700; }
     .content { max-width: 1440px; margin: 0 auto; padding: 31px 36px 46px; }
     .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: 24px; }
+    .heading-actions { display: flex; align-items: flex-end; gap: 12px; }
+    .pdf-button { min-height: 34px; padding: 0 12px; border: 1px solid var(--green); border-radius: 5px; color: white; background: var(--green); cursor: pointer; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .pdf-button:hover { background: #12583f; }
     .eyebrow { margin: 0 0 8px; color: var(--green); font-size: 10px; font-weight: 700; letter-spacing: 0; text-transform: uppercase; }
     h1 { margin: 0; font: 800 26px/1.2 "Manrope", sans-serif; letter-spacing: 0; }
     .subtitle { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
@@ -154,6 +157,7 @@
       .updated { display: none; }
       .content { padding: 23px 14px 30px; }
       .page-heading { align-items: flex-start; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+      .heading-actions { align-items: center; flex-wrap: wrap; }
       h1 { font-size: 22px; }
       .stats { gap: 8px; margin-bottom: 14px; }
       .stat { min-height: 91px; padding: 13px; }
@@ -194,7 +198,7 @@
       <main class="content" id="resumen">
         <section class="page-heading">
           <div><p class="eyebrow">Inversora Macroandes · Informe de obras</p><h1>Proyectos Pernia</h1><p class="subtitle">Seguimiento de avance y presupuesto (Actualización de datos: 29/10/2026).</p></div>
-          <div class="updated" id="update-date"></div>
+          <div class="heading-actions"><div class="updated" id="update-date"></div><button class="pdf-button" id="generate-pdf" type="button">Generar PDF</button></div>
         </section>
 
         <section class="stats" aria-label="Resumen del portafolio">
@@ -286,6 +290,147 @@
       });
     }
 
+    function generarPDF() {
+      const enCurso = proyectos.filter((item) => item.status === 'En Curso');
+      const popup = window.open('', '_blank');
+      if (!popup) {
+        window.alert('No se pudo abrir el informe. Permite las ventanas emergentes para generar el PDF.');
+        return;
+      }
+
+      const totales = enCurso.reduce((sum, item) => ({
+        budget: sum.budget + (Number(item.budget) || 0),
+        paid: sum.paid + (Number(item.paid) || 0),
+        due: sum.due + (Number(item.due) || 0)
+      }), { budget: 0, paid: 0, due: 0 });
+      const fecha = new Intl.DateTimeFormat('es-VE', { dateStyle: 'long' }).format(new Date());
+      const maxBudget = Math.max(0, ...enCurso.map((item) => Number(item.budget) || 0));
+      const maxDue = Math.max(0, ...enCurso.map((item) => Number(item.due) || 0));
+      const logoUrl = new URL('./Logo%20Macroandes.png', window.location.href).href;
+      function graficoBarras(title, description, valueKey, formatter, maxValue, colorClass = '') {
+        const filas = enCurso.map((item) => {
+          const value = Math.max(0, Number(item[valueKey]) || 0);
+          const width = maxValue > 0 ? Math.min(100, (value / maxValue) * 100) : 0;
+          return `<div class="chart-row">
+            <div class="chart-label"><span>${esc(item.name)}</span><strong>${formatter(value)}</strong></div>
+            <div class="chart-track" aria-hidden="true"><span class="${colorClass}" style="width:${width}%"></span></div>
+          </div>`;
+        }).join('');
+        return `<section class="chart" aria-label="${title}">
+          <div class="chart-heading"><h3>${title}</h3><p>${description}</p></div>
+          ${filas || '<p class="empty-chart">Sin obras activas para graficar.</p>'}
+        </section>`;
+      }
+      const reportesObras = enCurso.map((item) => `
+        <article class="project">
+          <div class="project-heading">
+            <div><p class="project-label">Obra activa</p><h2>${esc(item.name)}</h2></div>
+            <span class="status">En Curso</span>
+          </div>
+          <div class="progress">
+            <div><span>Avance físico</span><strong>${percent(item.physical)}</strong></div>
+            <div class="track"><span style="width:${Math.max(0, Math.min(100, Number(item.physical) || 0))}%"></span></div>
+            <p>Porcentaje de ejecución de los trabajos de la obra.</p>
+          </div>
+          <div class="project-metrics">
+            <div><span>Avance financiero</span><strong>${percent(item.financial)}</strong><small>Proporción del presupuesto representada por los desembolsos reportados.</small></div>
+            <div><span>Presupuesto aprobado</span><strong>${dinero(item.budget)}</strong><small>Monto total asignado a esta obra.</small></div>
+            <div><span>Desembolsado</span><strong>${dinero(item.paid)}</strong><small>Monto pagado o desembolsado a la fecha.</small></div>
+            <div><span>Por pagar</span><strong>${dinero(item.due)}</strong><small>Saldo pendiente registrado para la obra.</small></div>
+          </div>
+          <p class="schedule"><span>Cronograma:</span> ${esc(item.schedule)}</p>
+        </article>`).join('');
+
+      popup.document.open();
+      popup.document.write(`<!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Informe de Obras activas - Inversora Macroandes</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { max-width: 760px; margin: 0 auto; color: #202923; font: 11px/1.5 Arial, sans-serif; }
+            .header { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding: 0 0 16px; border-bottom: 3px solid #176b4d; }
+            .logo { width: 76px; height: 84px; flex: 0 0 76px; object-fit: contain; }
+            .company { margin: 0 0 9px; color: #176b4d; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+            h1 { margin: 0; color: #202923; font-size: 25px; line-height: 1.2; }
+            .subtitle { margin: 7px 0 0; color: #66736a; font-size: 11px; }
+            .scope { margin: 0 0 18px; padding: 11px 13px; border-left: 3px solid #176b4d; background: #f1f6f2; color: #405047; }
+            .scope strong { color: #176b4d; }
+            h2.section-title { margin: 0 0 9px; color: #2b3830; font-size: 13px; }
+            .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 23px; }
+            .metric { min-height: 83px; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; }
+            .metric span, .project-metrics span { display: block; color: #536159; font-size: 10px; font-weight: 700; }
+            .metric strong { display: block; margin: 3px 0; color: #176b4d; font-size: 16px; }
+            .metric small, .project-metrics small { display: block; color: #748078; font-size: 9px; line-height: 1.4; }
+            .charts { display: grid; gap: 10px; margin: 0 0 22px; }
+            .chart { padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
+            .chart-heading { margin-bottom: 8px; }
+            .chart h3 { margin: 0; color: #2b3830; font-size: 11px; }
+            .chart-heading p { margin: 2px 0 0; color: #748078; font-size: 9px; }
+            .chart-row + .chart-row { margin-top: 8px; }
+            .chart-label { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
+            .chart-label span { color: #536159; font-size: 9px; }
+            .chart-label strong { flex: 0 0 auto; color: #29372d; font-size: 9px; }
+            .chart-track { height: 7px; overflow: hidden; border-radius: 5px; background: #edf1ed; }
+            .chart-track span { display: block; height: 100%; min-width: 0; border-radius: inherit; background: #176b4d; }
+            .chart-track span.financial { background: #5286a0; }
+            .chart-track span.due { background: #bf8650; }
+            .empty-chart { margin: 0; color: #748078; font-size: 9px; }
+            .project { margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
+            .project-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }
+            .project-label { margin: 0 0 2px; color: #748078; font-size: 9px; text-transform: uppercase; }
+            .project h2 { margin: 0; color: #202923; font-size: 13px; line-height: 1.35; }
+            .status { flex: 0 0 auto; padding: 3px 7px; border-radius: 3px; color: #176b4d; background: #e8f3ed; font-size: 9px; font-weight: 700; }
+            .progress { margin: 10px 0; }
+            .progress > div:first-child { display: flex; justify-content: space-between; color: #536159; font-size: 10px; }
+            .progress strong { color: #202923; }
+            .track { height: 5px; margin-top: 4px; overflow: hidden; border-radius: 5px; background: #e8ede8; }
+            .track span { display: block; height: 100%; background: #4a9b70; }
+            .progress p { margin: 4px 0 0; color: #748078; font-size: 9px; }
+            .project-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+            .project-metrics > div { padding: 8px; background: #f8faf8; }
+            .project-metrics strong { display: block; margin: 2px 0; color: #29372d; font-size: 12px; }
+            .schedule { margin: 9px 0 0; color: #536159; font-size: 9px; }
+            .schedule span { font-weight: 700; }
+            .empty { padding: 22px; border: 1px dashed #cfd9d0; color: #66736a; text-align: center; }
+            .footer { margin-top: 22px; padding-top: 8px; border-top: 1px solid #dfe6df; color: #748078; font-size: 9px; }
+            @page { size: portrait; margin: 16mm; }
+            @media print { body { max-width: none; } }
+          </style>
+          <script>window.onload = () => window.print();<\/script>
+        </head>
+        <body>
+          <header class="header">
+            <img class="logo" src="${logoUrl}" alt="Logo de Inversora Macroandes">
+            <div><p class="company">Inversora Macroandes</p>
+              <h1>Informe de Obras activas</h1>
+              <p class="subtitle">Proyectos Pernia · Fecha de emisión: ${fecha}</p>
+            </div>
+          </header>
+          <p class="scope"><strong>Alcance del informe:</strong> incluye únicamente las obras registradas con estado “En Curso”. Todos los indicadores y montos consolidados corresponden a este grupo, independientemente de los filtros aplicados en el tablero.</p>
+          <h2 class="section-title">Resumen ejecutivo</h2>
+          <section class="summary">
+            <div class="metric"><span>Obras activas</span><strong>${enCurso.length}</strong><small>Cantidad de proyectos cuyo estado actual es “En Curso”.</small></div>
+            <div class="metric"><span>Presupuesto aprobado total</span><strong>${dinero(totales.budget)}</strong><small>Suma de los presupuestos aprobados para las obras activas.</small></div>
+            <div class="metric"><span>Total desembolsado</span><strong>${dinero(totales.paid)}</strong><small>Suma de los pagos o desembolsos registrados para estas obras.</small></div>
+            <div class="metric"><span>Saldo total por pagar</span><strong>${dinero(totales.due)}</strong><small>Suma de los saldos pendientes registrados para estas obras.</small></div>
+          </section>
+          <h2 class="section-title">Indicadores gráficos por obra</h2>
+          <section class="charts" aria-label="Gráficos de indicadores de obras activas">
+            ${graficoBarras('Presupuesto aprobado', 'Comparación del presupuesto aprobado por obra; la barra más larga representa el mayor monto.', 'budget', dinero, maxBudget)}
+            ${graficoBarras('Avance financiero', 'Porcentaje del presupuesto representado por los desembolsos registrados; escala de 0 % a 100 %.', 'financial', percent, 100, 'financial')}
+            ${graficoBarras('Monto por pagar', 'Comparación del saldo pendiente por obra; la barra más larga representa el mayor monto.', 'due', dinero, maxDue, 'due')}
+          </section>
+          <h2 class="section-title">Detalle de obras activas</h2>
+          ${enCurso.length ? reportesObras : '<p class="empty">No hay obras registradas con estado “En Curso”.</p>'}
+          <footer class="footer">Reporte ejecutivo generado desde el tablero de control de Inversora Macroandes. Los montos reflejan los datos registrados al momento de emisión.</footer>
+        </body>
+        </html>`);
+      popup.document.close();
+    }
+
     function renderizarTabla() {
       const filtrados = proyectosFiltrados();
       rows.innerHTML = filtrados.map((item) => {
@@ -347,6 +492,7 @@
       renderizarTabla();
     }));
     search.addEventListener('input', renderizarTabla);
+    document.getElementById('generate-pdf').addEventListener('click', generarPDF);
     overlay.addEventListener('click', cerrarDrawer);
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape') cerrarDrawer(); });
 
