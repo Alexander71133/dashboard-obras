@@ -270,10 +270,6 @@
     }
 
     function actualizarResumen() {
-      const presupuesto = proyectos.reduce((sum, item) => sum + (Number.isFinite(item.budget) ? item.budget : 0), 0);
-      const pendiente = proyectos.reduce((sum, item) => sum + item.due, 0);
-      document.getElementById('total-budget').textContent = dinero(presupuesto);
-      document.getElementById('total-due').textContent = dinero(pendiente);
       document.getElementById('active-count').textContent = proyectos.filter((item) => item.status === 'En Curso').length;
       document.getElementById('ready-count').textContent = proyectos.filter((item) => item.status === 'Listo').length;
       document.getElementById('study-count').textContent = proyectos.filter((item) => item.status === 'En Estudio').length;
@@ -319,7 +315,7 @@
         }).join('');
         return `<section class="chart" aria-label="${title}">
           <div class="chart-heading"><h3>${title}</h3><p>${description}</p></div>
-          ${barras ? `<div class="chart-bars">${barras}</div>` : '<p class="empty-chart">Sin obras activas para graficar.</p>'}
+          ${barras ? `<div class="chart-bars" style="grid-template-columns: repeat(${Math.max(enCurso.length, 1)}, minmax(0, 1fr))">${barras}</div>` : '<p class="empty-chart">Sin obras activas para graficar.</p>'}
         </section>`;
       }
       const reportesObras = enCurso.map((item) => `
@@ -367,20 +363,22 @@
             .metric span, .project-metrics span { display: block; color: #445148; font-size: 15px; font-weight: 700; }
             .metric strong { display: block; margin: 4px 0; color: #176b4d; font-size: 22px; }
             .metric small, .project-metrics small { display: block; color: #59665d; font-size: 14px; line-height: 1.45; }
-            .charts { display: grid; gap: 10px; margin: 0 0 22px; }
-            .chart { padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
-            .chart-heading { margin-bottom: 8px; }
+            .chart-report > .section-title { break-after: avoid; page-break-after: avoid; }
+            .charts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: stretch; margin: 0 0 22px; }
+            .chart { min-width: 0; display: flex; flex-direction: column; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
+            .chart-heading { min-height: 94px; margin-bottom: 8px; }
             .chart h3 { margin: 0; color: #2b3830; font-size: 18px; }
             .chart-heading p { margin: 3px 0 0; color: #59665d; font-size: 15px; }
-            .chart-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 8px; align-items: end; padding-top: 7px; border-bottom: 1px solid #dfe6df; }
-            .chart-bar-item { min-width: 0; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; text-align: center; }
-            .chart-bar-value { width: 100%; min-height: 17px; overflow-wrap: anywhere; color: #29372d; font-size: 13px; line-height: 1.25; }
+            .chart-bars { flex: 1; display: grid; gap: 8px; align-items: stretch; padding-top: 7px; border-bottom: 1px solid #dfe6df; }
+            .chart-bar-item { min-width: 0; display: grid; grid-template-rows: 48px 105px 48px; justify-items: center; align-content: end; gap: 5px; text-align: center; }
+            .chart-bar-value { width: 100%; height: 48px; display: -webkit-box; overflow: hidden; color: #29372d; font-size: 11px; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
             .chart-bar-track { width: 30px; height: 105px; display: flex; align-items: flex-end; overflow: hidden; background: #edf1ed; }
             .chart-bar-track span { display: block; width: 100%; min-height: 0; border-left: 20px solid #176b4d; background: #176b4d; }
             .chart-bar-track span.financial { border-left-color: #5286a0; background: #5286a0; }
             .chart-bar-track span.due { border-left-color: #bf8650; background: #bf8650; }
-            .chart-bar-label { width: 100%; min-height: 32px; overflow-wrap: anywhere; color: #445148; font-size: 13px; line-height: 1.25; }
+            .chart-bar-label { width: 100%; height: 48px; display: -webkit-box; overflow: hidden; overflow-wrap: anywhere; color: #445148; font-size: 13px; line-height: 1.25; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
             .empty-chart { margin: 0; color: #59665d; font-size: 15px; }
+            @media (max-width: 700px) { .charts { grid-template-columns: 1fr; } }
             .project { margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
             .project-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }
             .project-label { margin: 0 0 3px; color: #59665d; font-size: 14px; font-weight: 700; text-transform: uppercase; }
@@ -429,14 +427,16 @@
             <div class="metric"><span>Total desembolsado</span><strong>${dinero(totales.paid)}</strong><small>Suma de los pagos o desembolsos registrados para estas obras.</small></div>
             <div class="metric"><span>Saldo total por pagar</span><strong>${dinero(totales.due)}</strong><small>Suma de los saldos pendientes registrados para estas obras.</small></div>
           </section>
+          <section class="chart-report">
+            <h2 class="section-title">Indicadores gráficos por obra</h2>
+            <div class="charts" aria-label="Gráficos de indicadores de obras activas">
+              ${graficoBarras('Presupuesto aprobado', 'Comparación del presupuesto aprobado por obra; la barra más alta representa el mayor monto.', 'budget', dinero, maxBudget)}
+              ${graficoBarras('Avance físico', 'Porcentaje de ejecución de los trabajos de cada obra; escala de 0 % a 100 %.', 'physical', percent, 100)}
+              ${graficoBarras('Monto por pagar', 'Comparación del saldo pendiente por obra; la barra más alta representa el mayor monto.', 'due', dinero, maxDue, 'due')}
+            </div>
+          </section>
           <h2 class="section-title">Detalle de obras activas</h2>
           ${enCurso.length ? reportesObras : '<p class="empty">No hay obras registradas con estado “En Curso”.</p>'}
-          <h2 class="section-title">Indicadores gráficos por obra</h2>
-          <section class="charts" aria-label="Gráficos de indicadores de obras activas">
-            ${graficoBarras('Presupuesto aprobado', 'Comparación del presupuesto aprobado por obra; la barra más alta representa el mayor monto.', 'budget', dinero, maxBudget)}
-            ${graficoBarras('Avance físico', 'Porcentaje de ejecución de los trabajos de cada obra; escala de 0 % a 100 %.', 'physical', percent, 100)}
-            ${graficoBarras('Monto por pagar', 'Comparación del saldo pendiente por obra; la barra más alta representa el mayor monto.', 'due', dinero, maxDue, 'due')}
-          </section>
           <footer class="footer">Reporte ejecutivo generado desde el tablero de control de Inversora Macroandes. Los montos reflejan los datos registrados al momento de emisión.</footer>
         </body>
         </html>`);
@@ -445,6 +445,12 @@
 
     function renderizarTabla() {
       const filtrados = proyectosFiltrados();
+      const totalesFiltrados = filtrados.reduce((sum, item) => ({
+        budget: sum.budget + (Number(item.budget) || 0),
+        due: sum.due + (Number(item.due) || 0)
+      }), { budget: 0, due: 0 });
+      document.getElementById('total-budget').textContent = dinero(totalesFiltrados.budget);
+      document.getElementById('total-due').textContent = dinero(totalesFiltrados.due);
       rows.innerHTML = filtrados.map((item) => {
         const originalIndex = proyectos.indexOf(item);
         return `<tr>
