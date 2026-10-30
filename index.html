@@ -22,9 +22,6 @@
         .nav-item { min-height: 39px; display: flex; align-items: center; gap: 11px; padding: 0 11px; border-radius: 6px; color: #676879; text-decoration: none; font-size: 12px; }
         .nav-item.active { color: #4b4bd8; background: #f0f0ff; font-weight: 650; }
         .nav-item i { width: 16px; text-align: center; }
-        .nav-section { margin: 24px 10px 8px; color: #9699a6; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-        .workspace-project { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 6px; background: #f7f8fa; color: #454650; font-size: 11px; }
-        .project-dot { width: 9px; height: 9px; border-radius: 3px; background: #6161ff; }
         .sidebar-footer { margin-top: auto; padding: 13px 10px 0; border-top: 1px solid #eceef2; color: #9699a6; font-size: 10px; line-height: 1.6; }
         .main-shell { min-width: 0; }
         .topbar { height: 61px; display: flex; align-items: center; justify-content: space-between; padding: 0 32px; border-bottom: 1px solid #e6e9ef; background: #fff; }
@@ -105,22 +102,20 @@
         .detail-caption { padding: 4px 8px; border-radius: 4px; color: #676879; background: #f0f1f4; font-size: 9px; }
         #waterfallChart { width: 100%; height: 340px; }
         @media (max-width: 1020px) { .app-layout { grid-template-columns: 205px minmax(0, 1fr); } .sidebar { padding-right: 10px; padding-left: 10px; } .content { padding-right: 20px; padding-left: 20px; } }
-        @media (max-width: 760px) { .app-layout { display: block; } .sidebar { position: static; height: auto; padding: 12px 15px; border-right: 0; border-bottom: 1px solid #e6e9ef; } .brand { padding: 0; } .workspace-label, .sidebar nav, .nav-section, .workspace-project, .sidebar-footer { display: none; } .topbar { height: 48px; padding: 0 16px; } .topbar-right span { display: none; } .content { padding: 20px 14px 32px; } .page-heading { align-items: flex-start; flex-direction: column; } .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .kpi-card { padding: 12px; } .kpi-value { font-size: 18px; } .board-head, .board-controls { align-items: flex-start; flex-direction: column; } .board-controls { gap: 10px; } .board-search { width: 100%; } }
+        @media (max-width: 760px) { .app-layout { display: block; } .sidebar { position: static; height: auto; padding: 12px 15px; border-right: 0; border-bottom: 1px solid #e6e9ef; } .brand { padding: 0; } .workspace-label, .sidebar nav, .sidebar-footer { display: none; } .topbar { height: 48px; padding: 0 16px; } .topbar-right span { display: none; } .content { padding: 20px 14px 32px; } .page-heading { align-items: flex-start; flex-direction: column; } .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .kpi-card { padding: 12px; } .kpi-value { font-size: 18px; } .board-head, .board-controls { align-items: flex-start; flex-direction: column; } .board-controls { gap: 10px; } .board-search { width: 100%; } }
         @media (max-width: 420px) { .kpi-grid { grid-template-columns: 1fr; } .view-tabs { width: 100%; } .view-tab { flex: 1; padding-right: 5px; padding-left: 5px; } }
     </style>
 </head>
 <body>
     <div class="app-layout">
         <aside class="sidebar" aria-label="Navegación principal">
-            <div class="brand"><img class="brand-logo" src="src/assets/Logo.svg" alt="Logo de Inversora Macroandes"><div><div class="brand-name">Macroandes</div><div class="brand-caption">Gestión de proyectos</div></div></div>
+            <div class="brand"><img class="brand-logo" src="../src/assets/Logo.svg" alt="Logo de Inversora Macroandes"><div><div class="brand-name">Inversora Macroandes</div><div class="brand-caption">Gestión de proyectos</div></div></div>
             <div class="workspace-label">Espacio de trabajo</div>
             <nav aria-label="Secciones del tablero">
                 <a class="nav-item" href="#resumen"><i class="fa-solid fa-house"></i> Inicio</a>
                 <a class="nav-item active" href="#tablero"><i class="fa-solid fa-table-cells-large"></i> Tablero de obras</a>
                 <a class="nav-item" href="#conciliacion"><i class="fa-solid fa-chart-column"></i> Finanzas</a>
             </nav>
-            <div class="nav-section">Tableros favoritos</div>
-            <div class="workspace-project"><span class="project-dot"></span><span>Control de obras</span></div>
             <div class="sidebar-footer">Inversora Macroandes<br>Panel interno de seguimiento</div>
         </aside>
         <div class="main-shell">
@@ -175,7 +170,7 @@
         const busquedaObras = document.getElementById('project-search');
         const filasObras = document.getElementById('project-rows');
         const dialogArchivos = document.getElementById('files-dialog');
-        const rutaBaseArchivos = "";
+        const rutaBaseArchivos = "../";
         let proyectoSeleccionado = null;
         let mostrarProyectoSeleccionado = false;
 
