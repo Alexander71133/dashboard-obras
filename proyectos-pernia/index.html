@@ -198,7 +198,7 @@
       <main class="content" id="resumen">
         <section class="page-heading">
           <div><p class="eyebrow">Inversora Macroandes · Informe de obras</p><h1>Proyectos Pernia</h1><p class="subtitle">Seguimiento de avance y presupuesto (Actualización de datos: 29/10/2026).</p></div>
-          <div class="heading-actions"><div class="updated" id="update-date"></div><button class="pdf-button" id="generate-pdf" type="button">Generar PDF</button></div>
+          <div class="heading-actions"><div class="updated" id="update-date"></div><button class="pdf-button" id="generate-pdf" type="button">Generar resumen de obras en curso PDF</button></div>
         </section>
 
         <section class="stats" aria-label="Resumen del portafolio">
@@ -359,6 +359,8 @@
             .subtitle { margin: 7px 0 0; color: #59665d; font-size: 15px; }
             .scope { margin: 0 0 18px; padding: 11px 13px; border-left: 3px solid #176b4d; background: #f1f6f2; color: #405047; }
             .scope strong { color: #176b4d; }
+            .report-actions { display: flex; justify-content: flex-end; margin-bottom: 16px; }
+            .print-button { padding: 9px 14px; border: 1px solid #176b4d; border-radius: 5px; color: #fff; background: #176b4d; cursor: pointer; font: inherit; font-weight: 700; }
             h2.section-title { margin: 0 0 10px; color: #2b3830; font-size: 23px; line-height: 1.3; }
             .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 23px; }
             .metric { min-height: 83px; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; }
@@ -401,6 +403,7 @@
             @media print {
               * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
               body { max-width: none; }
+              .report-actions { display: none; }
               .chart-bar-track { border-left: 1px solid #9aa69c; }
               .chart-bar-track span { background: #176b4d !important; }
               .chart-bar-track span.financial { background: #5286a0 !important; }
@@ -408,9 +411,9 @@
               .track span { border-top-color: #4a9b70; }
             }
           </style>
-          <script>window.onload = () => window.print();<\/script>
         </head>
         <body>
+          <div class="report-actions"><button class="print-button" type="button" onclick="window.print()">Imprimir / Guardar como PDF</button></div>
           <header class="header">
             <img class="logo" src="${logoUrl}" alt="Logo de Inversora Macroandes">
             <div><p class="company">Inversora Macroandes</p>
