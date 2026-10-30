@@ -6,7 +6,7 @@ from datetime import datetime
 from html import escape
 import json
 from pathlib import Path
-from procesar_datos import obtener_datos_obras
+from procesar_datos import obtener_datos_obras, obtener_datos_transacciones
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RUTA_OUTPUT = BASE_DIR / "output" / "dashboard_obras.html"
@@ -181,6 +181,8 @@ def _generar_reporte_html(datos_obras):
 def generar_dashboard():
     datos_obras = obtener_datos_obras()
     datos_json = json.dumps(datos_obras, ensure_ascii=False)
+    transacciones = obtener_datos_transacciones()
+    transacciones_json = json.dumps(transacciones, ensure_ascii=False)
     ruta_base_archivos = ""
 
     html_content = f"""<!DOCTYPE html>
@@ -243,8 +245,19 @@ def generar_dashboard():
         .board-search:focus {{ border-color: #8585ff; box-shadow: 0 0 0 2px #f0f0ff; }}
         .table-scroll {{ overflow-x: auto; }}
         .project-table {{ width: 100%; min-width: 1040px; border-collapse: collapse; text-align: left; }}
+        .transaction-table {{ width: 100%; min-width: 850px; border-collapse: collapse; text-align: left; }}
         .project-table th {{ height: 36px; padding: 0 12px; border-top: 1px solid #eceef2; border-bottom: 1px solid #eceef2; color: #9699a6; background: #fbfbfc; font-size: 9px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }}
         .project-table td {{ height: 53px; padding: 8px 12px; border-bottom: 1px solid #f0f1f4; color: #454650; font-size: 10px; white-space: nowrap; }}
+        .transaction-table th {{ height: 36px; padding: 0 12px; border-top: 1px solid #eceef2; border-bottom: 1px solid #eceef2; color: #9699a6; background: #fbfbfc; font-size: 9px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }}
+        .transaction-table td {{ padding: 10px 12px; border-bottom: 1px solid #f0f1f4; color: #454650; font-size: 10px; }}
+        .transaction-table tbody tr:hover {{ background: #fbfbff; }}
+        .transaction-table tbody tr:last-child td {{ border-bottom: 0; }}
+        .transaction-total {{ font-weight: 700; white-space: nowrap; }}
+        .transaction-total.positive {{ color: #147d52; }}
+        .transaction-total.negative {{ color: #c2414b; }}
+        .transaction-total.neutral {{ color: #676879; }}
+        .transactions-card {{ margin-top: 18px; }}
+        .transactions-note {{ padding: 0 19px 12px; }}
         .project-table tbody tr {{ cursor: pointer; transition: background .15s; }}
         .project-table tbody tr:hover {{ background: #f7f8ff; }}
         .project-table tbody tr.selected {{ background: #f0f0ff; box-shadow: inset 3px 0 #6161ff; }}
@@ -302,6 +315,7 @@ def generar_dashboard():
                 <a class="nav-item" href="#resumen"><i class="fa-solid fa-house"></i> Inicio</a>
                 <a class="nav-item active" href="#tablero"><i class="fa-solid fa-table-cells-large"></i> Tablero de obras</a>
                 <a class="nav-item" href="#conciliacion"><i class="fa-solid fa-chart-column"></i> Finanzas</a>
+                <a class="nav-item" href="#registro-transacciones"><i class="fa-solid fa-money-bill-transfer"></i> Registro de Transacciones</a>
             </nav>
             <div class="sidebar-footer">Inversora Macroandes<br>Panel interno de seguimiento</div>
         </aside>
@@ -344,8 +358,26 @@ def generar_dashboard():
                     <div class="detail-heading"><div><h2>Conciliación de flujo de caja</h2><p id="chart-project-name">Detalle del proyecto seleccionado</p></div><span class="detail-caption">USD</span></div>
                     <div id="waterfallChart"></div>
                 </section>
+                <section id="registro-transacciones" class="board-card transactions-card" aria-label="Registro de transacciones por obra">
+                    <div class="board-head"><div><h2 class="board-title">Registro de Transacciones <span class="board-count" id="transaction-count">0</span></h2><p class="board-description">Entradas y salidas agrupadas por obra, con su saldo neto.</p></div></div>
+                    <div class="board-controls">
+                        <div class="view-tabs" role="group" aria-label="Filtrar transacciones por condición">
+                            <button class="view-tab active" type="button" data-transaction-view="TODAS">Todas las obras</button>
+                            <button class="view-tab" type="button" data-transaction-view="ACTIVA">Activas</button>
+                            <button class="view-tab" type="button" data-transaction-view="CULMINADA">Culminadas</button>
+                        </div>
+                        <input class="board-search" id="transaction-search" type="search" placeholder="Buscar obra..." aria-label="Buscar obra en transacciones">
+                    </div>
+                    <p class="board-description transactions-note">Total neto = entradas menos salidas</p>
+                    <div class="table-scroll">
+                        <table class="transaction-table">
+                            <thead><tr><th>Obra</th><th>Entradas</th><th>Salidas</th><th>Total neto</th><th>Facturas de compra</th></tr></thead>
+                            <tbody id="transaction-rows"></tbody>
+                        </table>
+                    </div>
+                </section>
                 <dialog class="files-dialog" id="files-dialog" aria-labelledby="files-dialog-title">
-                    <div class="files-dialog-header"><div><p>Documentos y fotos</p><h2 id="files-dialog-title">Archivos del proyecto</h2><small id="files-dialog-count"></small></div><button class="files-dialog-close" id="files-dialog-close" type="button" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
+                    <div class="files-dialog-header"><div><p id="files-dialog-type">Documentos y fotos</p><h2 id="files-dialog-title">Archivos del proyecto</h2><small id="files-dialog-count"></small></div><button class="files-dialog-close" id="files-dialog-close" type="button" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
                     <div id="files-preview"></div>
                 </dialog>
             </main>
@@ -353,9 +385,13 @@ def generar_dashboard():
     </div>
     <script>
         const datosProyectos = {datos_json};
+        const datosTransacciones = {transacciones_json};
         const estadoSelector = {{ vista: 'TODAS' }};
         const busquedaObras = document.getElementById('project-search');
         const filasObras = document.getElementById('project-rows');
+        const busquedaTransacciones = document.getElementById('transaction-search');
+        const filasTransacciones = document.getElementById('transaction-rows');
+        const estadoTransacciones = {{ vista: 'TODAS' }};
         const dialogArchivos = document.getElementById('files-dialog');
         const rutaBaseArchivos = "{ruta_base_archivos}";
         let proyectoSeleccionado = null;
@@ -375,6 +411,69 @@ def generar_dashboard():
             return String(valor).replace(/[&<>"']/g, (caracter) => ({{
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }})[caracter]);
+        }}
+
+        function renderizarTransacciones() {{
+            const consulta = busquedaTransacciones.value.trim().toLocaleLowerCase('es');
+            const obras = datosTransacciones.filter((datos) => {{
+                const texto = datos.obra.toLocaleLowerCase('es');
+                const coincideEstado = estadoTransacciones.vista === 'TODAS'
+                    || datos.estado === estadoTransacciones.vista;
+                return coincideEstado && (!consulta || texto.includes(consulta));
+            }});
+
+            document.getElementById('transaction-count').textContent = obras.length;
+            filasTransacciones.innerHTML = obras.map((datos) => {{
+                const claseTotal = datos.total > 0
+                    ? 'positive'
+                    : datos.total < 0
+                        ? 'negative'
+                        : 'neutral';
+
+                return `<tr>
+                    <td><div class="project-name">${{escaparHTML(datos.obra)}}</div></td>
+                    <td>${{formatearUSD(datos.total_entradas)}}</td>
+                    <td>${{formatearUSD(datos.total_salidas)}}</td>
+                    <td class="transaction-total ${{claseTotal}}">${{formatearUSD(datos.total)}}</td>
+                    <td>${{datos.facturas.length
+                        ? `<button class="files-button" type="button" data-invoices-project="${{escaparHTML(datos.obra)}}" aria-label="Ver facturas de compra de ${{escaparHTML(datos.obra)}}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> Ver ${{datos.facturas.length}}</button>`
+                        : '<span class="files-empty">Sin facturas</span>'}}</td>
+                </tr>`;
+            }}).join('') || '<tr><td class="empty-row" colspan="5">No hay transacciones para mostrar.</td></tr>';
+            filasTransacciones.querySelectorAll('[data-invoices-project]').forEach((boton) => {{
+                boton.addEventListener('click', () => {{
+                    const obra = boton.dataset.invoicesProject;
+                    const datos = datosTransacciones.find((fila) => fila.obra === obra);
+                    mostrarArchivos(obra, datos.facturas, 'Facturas de compra');
+                }});
+            }});
+        }}
+
+        function mostrarArchivos(obra, archivos, tipo) {{
+            document.getElementById('files-dialog-type').textContent = tipo;
+            document.getElementById('files-dialog-title').textContent = `${{tipo}} · ${{obra}}`;
+            document.getElementById('files-dialog-count').textContent = `${{archivos.length}} archivos vinculados a esta obra`;
+            const imagenes = archivos.filter((archivo) => archivo.tipo === 'imagen');
+            const documentos = archivos.filter((archivo) => archivo.tipo !== 'imagen');
+            const vistaDocumentos = documentos.map((archivo) => {{
+                const extension = archivo.nombre.split('.').pop() || 'archivo';
+                return `<a class="files-document" href="${{escaparHTML(rutaBaseArchivos + archivo.ruta)}}" target="_blank" rel="noopener noreferrer">
+                    <span class="files-document-icon">${{escaparHTML(extension)}}</span>
+                    <span class="files-document-name">${{escaparHTML(archivo.nombre)}}</span>
+                    <span class="files-document-open" aria-hidden="true"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+                </a>`;
+            }}).join('');
+            const vistaImagenes = imagenes.map((archivo) => {{
+                const url = escaparHTML(rutaBaseArchivos + archivo.ruta);
+                return `<a class="files-photo" href="${{url}}" target="_blank" rel="noopener noreferrer" aria-label="Abrir foto: ${{escaparHTML(archivo.nombre)}}">
+                    <img src="${{url}}" alt="${{escaparHTML(archivo.nombre)}}" loading="lazy">
+                </a>`;
+            }}).join('');
+            document.getElementById('files-preview').innerHTML = archivos.length
+                ? `${{documentos.length ? `<section aria-label="Documentos"><div class="files-section-title">Documentos <small>${{documentos.length}} archivos</small></div><div class="files-document-list">${{vistaDocumentos}}</div></section>` : ''}}
+                    ${{imagenes.length ? `<section aria-label="Fotos"><div class="files-section-title">Fotos <small>${{imagenes.length}} imágenes</small></div><div class="files-photo-grid">${{vistaImagenes}}</div></section>` : ''}}`
+                : '<div class="files-empty-preview">No hay archivos vinculados a esta obra.</div>';
+            dialogArchivos.showModal();
         }}
 
         function obtenerEtiquetaObra(obra, data) {{
@@ -462,30 +561,7 @@ def generar_dashboard():
                 boton.addEventListener('click', (evento) => {{
                     evento.stopPropagation();
                     const obra = boton.dataset.filesProject;
-                    const archivos = datosProyectos[obra].archivos;
-                    document.getElementById('files-dialog-title').textContent = `Archivos · ${{obra}}`;
-                    document.getElementById('files-dialog-count').textContent = `${{archivos.length}} archivos vinculados a esta obra`;
-                    const imagenes = archivos.filter((archivo) => archivo.tipo === 'imagen');
-                    const documentos = archivos.filter((archivo) => archivo.tipo !== 'imagen');
-                    const vistaDocumentos = documentos.map((archivo) => {{
-                        const extension = archivo.nombre.split('.').pop() || 'archivo';
-                        return `<a class="files-document" href="${{escaparHTML(rutaBaseArchivos + archivo.ruta)}}" target="_blank" rel="noopener noreferrer">
-                            <span class="files-document-icon">${{escaparHTML(extension)}}</span>
-                            <span class="files-document-name">${{escaparHTML(archivo.nombre)}}</span>
-                            <span class="files-document-open" aria-hidden="true"><i class="fa-solid fa-arrow-up-right-from-square"></i></span>
-                        </a>`;
-                    }}).join('');
-                    const vistaImagenes = imagenes.map((archivo) => {{
-                        const url = escaparHTML(rutaBaseArchivos + archivo.ruta);
-                        return `<a class="files-photo" href="${{url}}" target="_blank" rel="noopener noreferrer" aria-label="Abrir foto: ${{escaparHTML(archivo.nombre)}}">
-                            <img src="${{url}}" alt="${{escaparHTML(archivo.nombre)}}" loading="lazy">
-                        </a>`;
-                    }}).join('');
-                    document.getElementById('files-preview').innerHTML = archivos.length
-                        ? `${{documentos.length ? `<section aria-label="Documentos"><div class="files-section-title">Documentos <small>${{documentos.length}} archivos</small></div><div class="files-document-list">${{vistaDocumentos}}</div></section>` : ''}}
-                            ${{imagenes.length ? `<section aria-label="Fotos"><div class="files-section-title">Fotos <small>${{imagenes.length}} imágenes</small></div><div class="files-photo-grid">${{vistaImagenes}}</div></section>` : ''}}`
-                        : '<div class="files-empty-preview">No hay archivos vinculados a este proyecto.</div>';
-                    dialogArchivos.showModal();
+                    mostrarArchivos(obra, datosProyectos[obra].archivos, 'Documentos y fotos');
                 }});
             }});
 
@@ -549,7 +625,18 @@ def generar_dashboard():
                 mostrarProyectoSeleccionado = false;
                 renderizarTablero();
             }});
+            busquedaTransacciones.addEventListener('input', renderizarTransacciones);
+            document.querySelectorAll('[data-transaction-view]').forEach((boton) => {{
+                boton.addEventListener('click', () => {{
+                    estadoTransacciones.vista = boton.dataset.transactionView;
+                    document.querySelectorAll('[data-transaction-view]').forEach((tab) => {{
+                        tab.classList.toggle('active', tab === boton);
+                    }});
+                    renderizarTransacciones();
+                }});
+            }});
             renderizarTablero();
+            renderizarTransacciones();
         }});
     </script>
 </body>
