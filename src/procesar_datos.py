@@ -3,11 +3,16 @@ Módulo de Procesamiento de Datos Financieros
 Extrae, limpia y mapea la información del libro Excel hacia la estructura del Dashboard.
 """
 from pathlib import Path
+import re
+import shutil
 import unicodedata
+from urllib.parse import quote
+
 import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 RUTA_EXCEL = BASE_DIR / "Datos" / "Gestion Proyecto Fatima.xlsx"
+RUTA_DOCUMENTOS = BASE_DIR / "documentos" / "obras"
 RUTA_CONTROL_OBRAS = (
     Path.home()
     / "Dropbox"
@@ -36,6 +41,94 @@ def _numero(valor):
         return 0.0
     return float(valor)
 
+
+def _slug_obra(nombre_obra):
+    texto = unicodedata.normalize("NFKD", nombre_obra)
+    texto = "".join(caracter for caracter in texto if not unicodedata.combining(caracter))
+    return re.sub(r"[^a-z0-9]+", "-", texto.lower()).strip("-")
+
+
+def _copiar_archivos_obra(valor_carpeta, nombre_obra):
+    if valor_carpeta is None or pd.isna(valor_carpeta) or not str(valor_carpeta).strip():
+        return []
+
+    carpeta_relativa = Path(*str(valor_carpeta).strip().replace("\\", "/").split("/"))
+    if carpeta_relativa.is_absolute() or ".." in carpeta_relativa.parts:
+        raise ValueError(
+            f"La ruta de archivos de '{nombre_obra}' debe ser relativa a Dropbox."
+        )
+
+    raiz_dropbox = RUTA_CONTROL_OBRAS.parent.resolve()
+    carpeta_origen = (raiz_dropbox / carpeta_relativa).resolve()
+    try:
+        carpeta_origen.relative_to(raiz_dropbox)
+    except ValueError as error:
+        raise ValueError(
+            f"La ruta de archivos de '{nombre_obra}' está fuera de la carpeta de Dropbox."
+        ) from error
+    if not carpeta_origen.is_dir():
+        raise FileNotFoundError(
+            f"No existe la carpeta de archivos de '{nombre_obra}': {carpeta_origen}"
+        )
+
+    extensiones_admitidas = {
+        ".csv", ".doc", ".docx", ".gif", ".jpeg", ".jpg",
+        ".pdf", ".png", ".txt", ".webp", ".xls", ".xlsx",
+    }
+    destino_obra = RUTA_DOCUMENTOS / _slug_obra(nombre_obra)
+    archivos = []
+    for archivo in sorted(
+        carpeta_origen.rglob("*"), key=lambda item: item.as_posix().casefold()
+    ):
+        if archivo.is_symlink():
+            raise ValueError(f"No se admiten enlaces simbólicos en: {archivo}")
+        if not archivo.is_file():
+            continue
+        if archivo.suffix.lower() not in extensiones_admitidas:
+            raise ValueError(
+                f"Tipo de archivo no admitido para '{nombre_obra}': {archivo.name}"
+            )
+
+        ruta_relativa = archivo.relative_to(carpeta_origen)
+        destino = destino_obra / ruta_relativa
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(archivo, destino)
+        ruta_web = quote(
+            destino.relative_to(BASE_DIR).as_posix(),
+            safe="/",
+        )
+        archivos.append(
+            {
+                "nombre": archivo.name,
+                "ruta": ruta_web,
+                "tipo": "imagen"
+                if archivo.suffix.lower() in {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+                else "documento",
+            }
+        )
+
+    return archivos
+
+
+def _estado_dashboard(valor, nombre_obra):
+    if valor is None or pd.isna(valor):
+        raise ValueError(f"La obra '{nombre_obra}' no tiene un estado en el Excel.")
+
+    estado_fuente = str(valor).strip()
+    estado_normalizado = _normalizar_encabezado(estado_fuente)
+    estados = {
+        "en curso": "ACTIVA",
+        "activa": "ACTIVA",
+        "culminado": "CULMINADA",
+        "culminada": "CULMINADA",
+    }
+    if estado_normalizado not in estados:
+        raise ValueError(
+            f"Estado no reconocido para la obra '{nombre_obra}': '{estado_fuente}'."
+        )
+    return estado_fuente, estados[estado_normalizado]
+
+
 def obtener_datos_obras():
     """
     Lee el libro fuente de Dropbox cuando está disponible; en caso contrario,
@@ -54,6 +147,7 @@ def obtener_datos_obras():
     if usar_control_obras:
         columnas = {
             "obra": _buscar_columna(df.columns, ("Nombre de la Obra / Proyecto",)),
+            "estado": _buscar_columna(df.columns, ("Status",)),
             "monto_contrato": _buscar_columna(df.columns, ("Monto del Contrato",)),
             "estimado": _buscar_columna(df.columns, ("Total Ejecutado",)),
             "cobrado": _buscar_columna(df.columns, ("Total Ingresos",)),
@@ -61,6 +155,7 @@ def obtener_datos_obras():
             "egresos": None,
             "por_cobrar": None,
             "avance_cobrado": None,
+            "archivos": _buscar_columna(df.columns, ("Archivos",)),
         }
     else:
         print(
@@ -69,6 +164,7 @@ def obtener_datos_obras():
         )
         columnas = {
             "obra": _buscar_columna(df.columns, ("Obra",)),
+            "estado": _buscar_columna(df.columns, ("Status", "Estado")),
             "monto_contrato": _buscar_columna(df.columns, ("Monto Contrato",)),
             "estimado": _buscar_columna(df.columns, ("Estimado Acumulado/Ejecutado", "Ejecutado")),
             "cobrado": _buscar_columna(df.columns, ("Cobrado Acumulado/Desembolsado", "Desembolsado")),
@@ -76,9 +172,10 @@ def obtener_datos_obras():
             "egresos": _buscar_columna(df.columns, ("Egresos Reales", "Egresos")),
             "por_cobrar": _buscar_columna(df.columns, ("Por cobrar",)),
             "avance_cobrado": _buscar_columna(df.columns, ("% Avance Cobrado",)),
+            "archivos": _buscar_columna(df.columns, ("Archivos",)),
         }
 
-    columnas_requeridas = ("obra", "monto_contrato", "estimado", "cobrado")
+    columnas_requeridas = ("obra", "estado", "monto_contrato", "estimado", "cobrado")
     if not usar_control_obras:
         columnas_requeridas += ("por_cobrar",)
     faltantes = [nombre for nombre in columnas_requeridas if columnas[nombre] is None]
@@ -103,6 +200,9 @@ def obtener_datos_obras():
                 _normalizar_encabezado(nombre_obra), nombre_obra
             )
 
+        estado_fuente, estado = _estado_dashboard(
+            row.get(columnas["estado"]), nombre_obra
+        )
         monto_contrato = _numero(row.get(columnas["monto_contrato"]))
         estimado = _numero(row.get(columnas["estimado"]))
         cobrado = _numero(row.get(columnas["cobrado"]))
@@ -129,10 +229,8 @@ def obtener_datos_obras():
         else:
             avance_financiero_pct = (cobrado / monto_contrato * 100) if monto_contrato > 0 else 0.0
 
-        estado = "ACTIVA"
         fecha_cierre = None
-        if nombre_obra.upper() == "FATIMA":
-            estado = "CULMINADA"
+        if estado == "CULMINADA" and nombre_obra.upper() == "FATIMA":
             fecha_cierre = "2026-09-15"
 
         proyectos[nombre_obra] = {
@@ -144,7 +242,12 @@ def obtener_datos_obras():
             "avance_financiero_pct": round(avance_financiero_pct, 2),
             "flujo_caja": flujo_caja,
             "estado": estado,
-            "fecha_cierre": fecha_cierre
+            "estado_fuente": estado_fuente,
+            "fecha_cierre": fecha_cierre,
+            "archivos": _copiar_archivos_obra(
+                row.get(columnas["archivos"]) if columnas["archivos"] else None,
+                nombre_obra,
+            ),
         }
 
     if usar_control_obras:
@@ -163,8 +266,10 @@ def obtener_datos_obras():
             if monto_contrato > 0
             else 0.0,
             "flujo_caja": flujo_caja,
-            "estado": "ACTIVA",
+            "estado": "CONSOLIDADO",
+            "estado_fuente": "Consolidado",
             "fecha_cierre": None,
+            "archivos": [],
         }
 
     return proyectos
