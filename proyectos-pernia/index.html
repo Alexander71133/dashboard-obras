@@ -308,17 +308,18 @@
       const maxDue = Math.max(0, ...enCurso.map((item) => Number(item.due) || 0));
       const logoUrl = new URL('./Logo%20Macroandes.png', window.location.href).href;
       function graficoBarras(title, description, valueKey, formatter, maxValue, colorClass = '') {
-        const filas = enCurso.map((item) => {
+        const barras = enCurso.map((item) => {
           const value = Math.max(0, Number(item[valueKey]) || 0);
-          const width = maxValue > 0 ? Math.min(100, (value / maxValue) * 100) : 0;
-          return `<div class="chart-row">
-            <div class="chart-label"><span>${esc(item.name)}</span><strong>${formatter(value)}</strong></div>
-            <div class="chart-track" aria-hidden="true"><span class="${colorClass}" style="width:${width}%"></span></div>
+          const height = maxValue > 0 ? Math.min(100, (value / maxValue) * 100) : 0;
+          return `<div class="chart-bar-item">
+            <strong class="chart-bar-value">${formatter(value)}</strong>
+            <div class="chart-bar-track" aria-hidden="true"><span class="${colorClass}" style="height:${height}%"></span></div>
+            <span class="chart-bar-label">${esc(item.name)}</span>
           </div>`;
         }).join('');
         return `<section class="chart" aria-label="${title}">
           <div class="chart-heading"><h3>${title}</h3><p>${description}</p></div>
-          ${filas || '<p class="empty-chart">Sin obras activas para graficar.</p>'}
+          ${barras ? `<div class="chart-bars">${barras}</div>` : '<p class="empty-chart">Sin obras activas para graficar.</p>'}
         </section>`;
       }
       const reportesObras = enCurso.map((item) => `
@@ -369,14 +370,14 @@
             .chart-heading { margin-bottom: 8px; }
             .chart h3 { margin: 0; color: #2b3830; font-size: 15px; }
             .chart-heading p { margin: 3px 0 0; color: #59665d; font-size: 13px; }
-            .chart-row + .chart-row { margin-top: 8px; }
-            .chart-label { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
-            .chart-label span { color: #445148; font-size: 13px; }
-            .chart-label strong { flex: 0 0 auto; color: #29372d; font-size: 13px; }
-            .chart-track { height: 9px; overflow: hidden; border-radius: 5px; background: #edf1ed; }
-            .chart-track span { display: block; height: 100%; min-width: 0; border-radius: inherit; background: #176b4d; }
-            .chart-track span.financial { background: #5286a0; }
-            .chart-track span.due { background: #bf8650; }
+            .chart-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 8px; align-items: end; padding-top: 7px; border-bottom: 1px solid #dfe6df; }
+            .chart-bar-item { min-width: 0; min-height: 155px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; text-align: center; }
+            .chart-bar-value { width: 100%; min-height: 17px; overflow-wrap: anywhere; color: #29372d; font-size: 11px; line-height: 1.25; }
+            .chart-bar-track { width: 30px; height: 105px; display: flex; align-items: flex-end; overflow: hidden; background: #edf1ed; }
+            .chart-bar-track span { display: block; width: 100%; min-height: 0; background: #176b4d; }
+            .chart-bar-track span.financial { background: #5286a0; }
+            .chart-bar-track span.due { background: #bf8650; }
+            .chart-bar-label { width: 100%; min-height: 32px; overflow-wrap: anywhere; color: #445148; font-size: 11px; line-height: 1.25; }
             .empty-chart { margin: 0; color: #59665d; font-size: 13px; }
             .project { margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
             .project-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }
@@ -417,14 +418,14 @@
             <div class="metric"><span>Total desembolsado</span><strong>${dinero(totales.paid)}</strong><small>Suma de los pagos o desembolsos registrados para estas obras.</small></div>
             <div class="metric"><span>Saldo total por pagar</span><strong>${dinero(totales.due)}</strong><small>Suma de los saldos pendientes registrados para estas obras.</small></div>
           </section>
-          <h2 class="section-title">Indicadores gráficos por obra</h2>
-          <section class="charts" aria-label="Gráficos de indicadores de obras activas">
-            ${graficoBarras('Presupuesto aprobado', 'Comparación del presupuesto aprobado por obra; la barra más larga representa el mayor monto.', 'budget', dinero, maxBudget)}
-            ${graficoBarras('Avance financiero', 'Porcentaje del presupuesto representado por los desembolsos registrados; escala de 0 % a 100 %.', 'financial', percent, 100, 'financial')}
-            ${graficoBarras('Monto por pagar', 'Comparación del saldo pendiente por obra; la barra más larga representa el mayor monto.', 'due', dinero, maxDue, 'due')}
-          </section>
           <h2 class="section-title">Detalle de obras activas</h2>
           ${enCurso.length ? reportesObras : '<p class="empty">No hay obras registradas con estado “En Curso”.</p>'}
+          <h2 class="section-title">Indicadores gráficos por obra</h2>
+          <section class="charts" aria-label="Gráficos de indicadores de obras activas">
+            ${graficoBarras('Presupuesto aprobado', 'Comparación del presupuesto aprobado por obra; la barra más alta representa el mayor monto.', 'budget', dinero, maxBudget)}
+            ${graficoBarras('Avance físico', 'Porcentaje de ejecución de los trabajos de cada obra; escala de 0 % a 100 %.', 'physical', percent, 100)}
+            ${graficoBarras('Monto por pagar', 'Comparación del saldo pendiente por obra; la barra más alta representa el mayor monto.', 'due', dinero, maxDue, 'due')}
+          </section>
           <footer class="footer">Reporte ejecutivo generado desde el tablero de control de Inversora Macroandes. Los montos reflejan los datos registrados al momento de emisión.</footer>
         </body>
         </html>`);
