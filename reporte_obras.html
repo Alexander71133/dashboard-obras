@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte ejecutivo, gerencial y financiero | Inversora Macroandes</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { max-width: 980px; margin: 0 auto; padding: 28px 32px; color: #27332d; background: #fff; font: 14px/1.5 Arial, sans-serif; }
+        .report-actions { display: flex; justify-content: flex-end; margin-bottom: 18px; }
+        .print-button { padding: 9px 14px; border: 1px solid #176b4d; border-radius: 5px; color: #fff; background: #176b4d; cursor: pointer; font: inherit; font-weight: 700; }
+        .report-header { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 3px solid #176b4d; }
+        .logo { width: 66px; height: 74px; flex: 0 0 66px; object-fit: contain; }
+        .company { margin: 0 0 5px; color: #176b4d; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        h1 { margin: 0; color: #202923; font-size: 25px; line-height: 1.2; }
+        .report-subtitle { margin: 6px 0 0; color: #68756c; font-size: 12px; }
+        .scope { margin: 0 0 18px; padding: 10px 12px; border-left: 3px solid #176b4d; color: #405047; background: #f1f6f2; }
+        .section-title { margin: 20px 0 10px; color: #2b3830; font-size: 17px; }
+        .summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+        .metric { min-height: 76px; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; }
+        .metric span, .project-metrics span { display: block; color: #59665d; font-size: 11px; font-weight: 600; }
+        .metric strong { display: block; margin-top: 5px; color: #176b4d; font-size: 18px; overflow-wrap: anywhere; }
+        .management-summary { margin: 12px 0 18px; color: #405047; }
+        .project { margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; page-break-inside: avoid; }
+        .project-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }
+        .project-kicker { margin: 0 0 3px; color: #68756c; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+        .project h2 { margin: 0; color: #202923; font-size: 17px; line-height: 1.35; }
+        .status { flex: 0 0 auto; padding: 4px 8px; border-radius: 3px; color: #176b4d; background: #e8f3ed; font-size: 11px; font-weight: 700; }
+        .progress-block { margin: 11px 0; }
+        .progress-heading { display: flex; justify-content: space-between; gap: 12px; color: #445148; font-size: 12px; }
+        .progress-track { height: 7px; margin-top: 5px; overflow: hidden; border-radius: 5px; background: #e8ede8; }
+        .progress-track span { display: block; height: 100%; border-top: 7px solid #4a9b70; background: #4a9b70; }
+        .progress-block p { margin: 5px 0 0; color: #68756c; font-size: 11px; }
+        .project-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }
+        .project-metrics > div { padding: 8px; background: #f8faf8; }
+        .project-metrics strong { display: block; margin-top: 3px; color: #29372d; font-size: 13px; overflow-wrap: anywhere; }
+        .empty { padding: 20px; border: 1px dashed #cfd9d0; color: #66736a; text-align: center; }
+        .footer { margin-top: 20px; padding-top: 9px; border-top: 1px solid #dfe6df; color: #68756c; font-size: 10px; }
+        @page { size: portrait; margin: 15mm; }
+        @media (max-width: 620px) { body { padding: 18px 14px; } .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .project-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media print {
+            * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            body { max-width: none; padding: 0; font-size: 12pt; line-height: 1.45; }
+            .report-actions { display: none; }
+            .report-header { gap: 6mm; margin-bottom: 7mm; padding-bottom: 5mm; }
+            .logo { width: 24mm; height: 27mm; flex-basis: 24mm; }
+            .company { margin-bottom: 2mm; font-size: 11pt; }
+            h1 { font-size: 25pt; line-height: 1.2; }
+            .report-subtitle { margin-top: 2mm; font-size: 11pt; }
+            .scope { margin-bottom: 5mm; padding: 3mm 4mm; font-size: 11pt; }
+            .section-title { margin: 6mm 0 3mm; font-size: 17pt; line-height: 1.25; break-after: avoid; page-break-after: avoid; }
+            .summary { gap: 3mm; }
+            .metric { min-height: 20mm; padding: 3mm; }
+            .metric span, .project-metrics span { font-size: 10.5pt; line-height: 1.3; }
+            .metric strong { margin-top: 1.5mm; font-size: 15pt; line-height: 1.25; }
+            .management-summary { margin: 4mm 0 6mm; font-size: 11.5pt; line-height: 1.45; }
+            .project { margin-top: 4mm; padding: 4mm; }
+            .project-heading { padding-bottom: 3mm; }
+            .project-kicker { margin-bottom: 1mm; font-size: 9.5pt; }
+            .project h2 { font-size: 16pt; line-height: 1.3; }
+            .status { padding: 1mm 2mm; font-size: 10.5pt; }
+            .progress-block { margin: 3mm 0; }
+            .progress-heading { font-size: 11.5pt; }
+            .progress-track { height: 2mm; margin-top: 1.5mm; }
+            .progress-track span { border-top-width: 2mm; }
+            .progress-block p { margin-top: 1.5mm; font-size: 10.5pt; }
+            .project-metrics { gap: 2mm; }
+            .project-metrics > div { padding: 2.5mm; }
+            .project-metrics strong { margin-top: 1mm; font-size: 12pt; line-height: 1.3; }
+            .footer { margin-top: 6mm; padding-top: 2.5mm; font-size: 10pt; line-height: 1.4; }
+            .progress-track span { border-top-color: #4a9b70; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-actions"><button class="print-button" type="button" onclick="window.print()">Imprimir / Guardar como PDF</button></div>
+    <header class="report-header">
+        <img class="logo" src="src/assets/Logo.svg" alt="Logo de Inversora Macroandes">
+        <div><p class="company">Inversora Macroandes</p><h1>Reporte ejecutivo, gerencial y financiero</h1><p class="report-subtitle">Tablero de obras · Fecha de emisión: 30/10/2026</p></div>
+    </header>
+    <p class="scope"><strong>Alcance:</strong> este reporte presenta exclusivamente las obras con estado “En Curso” registrado en el tablero.</p>
+    <h2 class="section-title">Resumen ejecutivo del portafolio activo</h2>
+    <section class="summary" aria-label="Indicadores consolidados de obras en curso">
+        <div class="metric"><span>Obras en curso</span><strong>4</strong></div>
+        <div class="metric"><span>Monto total de contratos</span><strong>$30,294.60</strong></div>
+        <div class="metric"><span>Monto ejecutado</span><strong>$6,631.88</strong></div>
+        <div class="metric"><span>Total desembolsado</span><strong>$19,833.67</strong></div>
+        <div class="metric"><span>Saldo por cobrar</span><strong>$10,460.93</strong></div>
+        <div class="metric"><span>Flujo de caja</span><strong>$13,201.79</strong></div>
+    </section>
+    <p class="management-summary">Las obras activas registran una ejecución acumulada equivalente al 21.89% del monto contratado y desembolsos por el 65.47%. El saldo consolidado pendiente por cobrar es de $10,460.93.</p>
+    <h2 class="section-title">Detalle gerencial y financiero por obra</h2>
+    <article class="project">
+                <header class="project-heading">
+                    <div><p class="project-kicker">Obra en curso</p><h2>ELECTRIFICACIÓN PERNIA DE LA MONTAÑA</h2></div>
+                    <span class="status">En Curso</span>
+                </header>
+                <div class="progress-block">
+                    <div class="progress-heading"><span>Avance financiero cobrado</span><strong>50.00%</strong></div>
+                    <div class="progress-track"><span style="width:50.0%"></span></div>
+                    <p>Ejecutado: $1,818.05 (14.54% del contrato).</p>
+                </div>
+                <div class="project-metrics">
+                    <div><span>Monto del contrato</span><strong>$12,501.85</strong></div>
+                    <div><span>Monto ejecutado</span><strong>$1,818.05</strong></div>
+                    <div><span>Total desembolsado</span><strong>$6,250.92</strong></div>
+                    <div><span>Saldo por cobrar</span><strong>$6,250.93</strong></div>
+                    <div><span>Flujo de caja</span><strong>$4,432.87</strong></div>
+                    <div><span>Estado</span><strong>En Curso</strong></div>
+                </div>
+            </article><article class="project">
+                <header class="project-heading">
+                    <div><p class="project-kicker">Obra en curso</p><h2>ESTANCIA ELECTRODOMESTICOS</h2></div>
+                    <span class="status">En Curso</span>
+                </header>
+                <div class="progress-block">
+                    <div class="progress-heading"><span>Avance financiero cobrado</span><strong>100.00%</strong></div>
+                    <div class="progress-track"><span style="width:100%"></span></div>
+                    <p>Ejecutado: $276.25 (5.00% del contrato).</p>
+                </div>
+                <div class="project-metrics">
+                    <div><span>Monto del contrato</span><strong>$5,525.00</strong></div>
+                    <div><span>Monto ejecutado</span><strong>$276.25</strong></div>
+                    <div><span>Total desembolsado</span><strong>$5,525.00</strong></div>
+                    <div><span>Saldo por cobrar</span><strong>$0.00</strong></div>
+                    <div><span>Flujo de caja</span><strong>$5,248.75</strong></div>
+                    <div><span>Estado</span><strong>En Curso</strong></div>
+                </div>
+            </article><article class="project">
+                <header class="project-heading">
+                    <div><p class="project-kicker">Obra en curso</p><h2>ESTANCIA LENCERIA</h2></div>
+                    <span class="status">En Curso</span>
+                </header>
+                <div class="progress-block">
+                    <div class="progress-heading"><span>Avance financiero cobrado</span><strong>100.00%</strong></div>
+                    <div class="progress-track"><span style="width:100%"></span></div>
+                    <p>Ejecutado: $87.18 (5.00% del contrato).</p>
+                </div>
+                <div class="project-metrics">
+                    <div><span>Monto del contrato</span><strong>$1,743.75</strong></div>
+                    <div><span>Monto ejecutado</span><strong>$87.18</strong></div>
+                    <div><span>Total desembolsado</span><strong>$1,743.75</strong></div>
+                    <div><span>Saldo por cobrar</span><strong>$0.00</strong></div>
+                    <div><span>Flujo de caja</span><strong>$1,656.57</strong></div>
+                    <div><span>Estado</span><strong>En Curso</strong></div>
+                </div>
+            </article><article class="project">
+                <header class="project-heading">
+                    <div><p class="project-kicker">Obra en curso</p><h2>INTERIORISMO APTO LA ESTANCIA</h2></div>
+                    <span class="status">En Curso</span>
+                </header>
+                <div class="progress-block">
+                    <div class="progress-heading"><span>Avance financiero cobrado</span><strong>60.00%</strong></div>
+                    <div class="progress-track"><span style="width:60.0%"></span></div>
+                    <p>Ejecutado: $4,450.40 (42.29% del contrato).</p>
+                </div>
+                <div class="project-metrics">
+                    <div><span>Monto del contrato</span><strong>$10,524.00</strong></div>
+                    <div><span>Monto ejecutado</span><strong>$4,450.40</strong></div>
+                    <div><span>Total desembolsado</span><strong>$6,314.00</strong></div>
+                    <div><span>Saldo por cobrar</span><strong>$4,210.00</strong></div>
+                    <div><span>Flujo de caja</span><strong>$1,863.60</strong></div>
+                    <div><span>Estado</span><strong>En Curso</strong></div>
+                </div>
+            </article>
+    <footer class="footer">Fuente: tablero de control de obras de Inversora Macroandes. Los montos corresponden a los valores registrados para cada proyecto activo.</footer>
+</body>
+</html>
