@@ -350,52 +350,52 @@
           <title>Informe de Obras activas - Inversora Macroandes</title>
           <style>
             * { box-sizing: border-box; }
-            body { max-width: 760px; margin: 0 auto; color: #202923; font: 11px/1.5 Arial, sans-serif; }
+            body { max-width: 800px; margin: 0 auto; color: #202923; font: 14px/1.55 Arial, sans-serif; }
             .header { display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding: 0 0 16px; border-bottom: 3px solid #176b4d; }
             .logo { width: 76px; height: 84px; flex: 0 0 76px; object-fit: contain; }
-            .company { margin: 0 0 9px; color: #176b4d; font-size: 12px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
-            h1 { margin: 0; color: #202923; font-size: 25px; line-height: 1.2; }
-            .subtitle { margin: 7px 0 0; color: #66736a; font-size: 11px; }
+            .company { margin: 0 0 9px; color: #176b4d; font-size: 14px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; }
+            h1 { margin: 0; color: #202923; font-size: 28px; line-height: 1.2; }
+            .subtitle { margin: 7px 0 0; color: #59665d; font-size: 13px; }
             .scope { margin: 0 0 18px; padding: 11px 13px; border-left: 3px solid #176b4d; background: #f1f6f2; color: #405047; }
             .scope strong { color: #176b4d; }
-            h2.section-title { margin: 0 0 9px; color: #2b3830; font-size: 13px; }
+            h2.section-title { margin: 0 0 10px; color: #2b3830; font-size: 18px; line-height: 1.3; }
             .summary { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 23px; }
             .metric { min-height: 83px; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; }
-            .metric span, .project-metrics span { display: block; color: #536159; font-size: 10px; font-weight: 700; }
-            .metric strong { display: block; margin: 3px 0; color: #176b4d; font-size: 16px; }
-            .metric small, .project-metrics small { display: block; color: #748078; font-size: 9px; line-height: 1.4; }
+            .metric span, .project-metrics span { display: block; color: #445148; font-size: 13px; font-weight: 700; }
+            .metric strong { display: block; margin: 4px 0; color: #176b4d; font-size: 19px; }
+            .metric small, .project-metrics small { display: block; color: #59665d; font-size: 13px; line-height: 1.45; }
             .charts { display: grid; gap: 10px; margin: 0 0 22px; }
             .chart { padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
             .chart-heading { margin-bottom: 8px; }
-            .chart h3 { margin: 0; color: #2b3830; font-size: 11px; }
-            .chart-heading p { margin: 2px 0 0; color: #748078; font-size: 9px; }
+            .chart h3 { margin: 0; color: #2b3830; font-size: 15px; }
+            .chart-heading p { margin: 3px 0 0; color: #59665d; font-size: 13px; }
             .chart-row + .chart-row { margin-top: 8px; }
             .chart-label { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 3px; }
-            .chart-label span { color: #536159; font-size: 9px; }
-            .chart-label strong { flex: 0 0 auto; color: #29372d; font-size: 9px; }
-            .chart-track { height: 7px; overflow: hidden; border-radius: 5px; background: #edf1ed; }
+            .chart-label span { color: #445148; font-size: 13px; }
+            .chart-label strong { flex: 0 0 auto; color: #29372d; font-size: 13px; }
+            .chart-track { height: 9px; overflow: hidden; border-radius: 5px; background: #edf1ed; }
             .chart-track span { display: block; height: 100%; min-width: 0; border-radius: inherit; background: #176b4d; }
             .chart-track span.financial { background: #5286a0; }
             .chart-track span.due { background: #bf8650; }
-            .empty-chart { margin: 0; color: #748078; font-size: 9px; }
+            .empty-chart { margin: 0; color: #59665d; font-size: 13px; }
             .project { margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; }
             .project-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }
-            .project-label { margin: 0 0 2px; color: #748078; font-size: 9px; text-transform: uppercase; }
-            .project h2 { margin: 0; color: #202923; font-size: 13px; line-height: 1.35; }
-            .status { flex: 0 0 auto; padding: 3px 7px; border-radius: 3px; color: #176b4d; background: #e8f3ed; font-size: 9px; font-weight: 700; }
+            .project-label { margin: 0 0 3px; color: #59665d; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+            .project h2 { margin: 0; color: #202923; font-size: 16px; line-height: 1.35; }
+            .status { flex: 0 0 auto; padding: 4px 8px; border-radius: 3px; color: #176b4d; background: #e8f3ed; font-size: 13px; font-weight: 700; }
             .progress { margin: 10px 0; }
-            .progress > div:first-child { display: flex; justify-content: space-between; color: #536159; font-size: 10px; }
+            .progress > div:first-child { display: flex; justify-content: space-between; color: #445148; font-size: 13px; }
             .progress strong { color: #202923; }
             .track { height: 5px; margin-top: 4px; overflow: hidden; border-radius: 5px; background: #e8ede8; }
             .track span { display: block; height: 100%; background: #4a9b70; }
-            .progress p { margin: 4px 0 0; color: #748078; font-size: 9px; }
+            .progress p { margin: 4px 0 0; color: #59665d; font-size: 13px; }
             .project-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
             .project-metrics > div { padding: 8px; background: #f8faf8; }
-            .project-metrics strong { display: block; margin: 2px 0; color: #29372d; font-size: 12px; }
-            .schedule { margin: 9px 0 0; color: #536159; font-size: 9px; }
+            .project-metrics strong { display: block; margin: 3px 0; color: #29372d; font-size: 15px; }
+            .schedule { margin: 10px 0 0; color: #445148; font-size: 13px; }
             .schedule span { font-weight: 700; }
             .empty { padding: 22px; border: 1px dashed #cfd9d0; color: #66736a; text-align: center; }
-            .footer { margin-top: 22px; padding-top: 8px; border-top: 1px solid #dfe6df; color: #748078; font-size: 9px; }
+            .footer { margin-top: 22px; padding-top: 8px; border-top: 1px solid #dfe6df; color: #59665d; font-size: 12px; }
             @page { size: portrait; margin: 16mm; }
             @media print { body { max-width: none; } }
           </style>
