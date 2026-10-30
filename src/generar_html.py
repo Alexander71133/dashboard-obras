@@ -48,6 +48,8 @@ def generar_dashboard():
         .avatar {{ width: 29px; height: 29px; display: grid; place-items: center; border-radius: 50%; color: #514fd4; background: #edecff; font-size: 10px; font-weight: 700; }}
         .content {{ max-width: 1500px; margin: 0 auto; padding: 28px 32px 44px; }}
         .page-heading {{ display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 22px; }}
+        .report-button {{ min-height: 36px; display: inline-flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid #4b4bd8; border-radius: 5px; color: #fff; background: #4b4bd8; cursor: pointer; font-size: 11px; font-weight: 650; white-space: nowrap; }}
+        .report-button:hover {{ border-color: #3c3cb6; background: #3c3cb6; }}
         .eyebrow {{ margin: 0 0 7px; color: #9699a6; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
         h1 {{ margin: 0; color: #323338; font-size: 26px; letter-spacing: -.8px; }}
         .subtitle {{ margin: 7px 0 0; color: #676879; font-size: 12px; }}
@@ -143,6 +145,7 @@ def generar_dashboard():
             <main class="content" id="resumen">
                 <section class="page-heading">
                     <div><p class="eyebrow">Inversora Macroandes · Portafolio</p><h1>Control de obras</h1><p class="subtitle">Seguimiento financiero y estado de los proyectos.</p></div>
+                    <button class="report-button" id="generate-report" type="button"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Generar reporte PDF</button>
                 </section>
                 <section class="kpi-grid" aria-label="Indicadores financieros de los proyectos filtrados">
                     <article class="kpi-card"><div class="kpi-label"><span class="kpi-icon"><i class="fa-solid fa-file-invoice-dollar"></i></span>Monto de contrato</div><div id="badge-obra-estado" class="badge-obra-estado">OBRA CULMINADA</div><div class="kpi-value" id="kpi-monto">$0,00</div><div class="kpi-note">Valor contractual acordado</div></article>
@@ -180,6 +183,7 @@ def generar_dashboard():
             </main>
         </div>
     </div>
+    <main class="report-view" id="report-view" hidden></main>
 
     <script>
         const datosProyectos = {datos_json};
@@ -187,6 +191,8 @@ def generar_dashboard():
         const busquedaObras = document.getElementById('project-search');
         const filasObras = document.getElementById('project-rows');
         const dialogArchivos = document.getElementById('files-dialog');
+        const vistaTablero = document.querySelector('.app-layout');
+        const vistaReporte = document.getElementById('report-view');
         const rutaBaseArchivos = "{ruta_base_archivos}";
         let proyectoSeleccionado = null;
         let mostrarProyectoSeleccionado = false;
@@ -212,6 +218,132 @@ def generar_dashboard():
                 return `${{obra}} - CULMINADA ${{formatearFecha(data.fecha_cierre)}}`;
             }}
             return obra;
+        }}
+
+        function generarReportePDF() {{
+            const obrasEnCurso = Object.entries(datosProyectos)
+                .filter(([, data]) => data.estado === 'ACTIVA')
+                .sort(([obraA], [obraB]) => obraA.localeCompare(obraB, 'es'));
+            const totales = obrasEnCurso.reduce((sum, [, data]) => ({{
+                contratos: sum.contratos + (Number(data.monto_contrato) || 0),
+                ejecutado: sum.ejecutado + (Number(data.estimado_ejecutado) || 0),
+                desembolsado: sum.desembolsado + (Number(data.cobrado_desembolsado) || 0),
+                porCobrar: sum.porCobrar + (Number(data.por_cobrar) || 0),
+                flujo: sum.flujo + (Number(data.flujo_caja) || 0),
+            }}), {{ contratos: 0, ejecutado: 0, desembolsado: 0, porCobrar: 0, flujo: 0 }});
+            const porcentajeEjecutado = totales.contratos > 0
+                ? (totales.ejecutado / totales.contratos) * 100
+                : 0;
+            const porcentajeDesembolsado = totales.contratos > 0
+                ? (totales.desembolsado / totales.contratos) * 100
+                : 0;
+            const fecha = new Intl.DateTimeFormat('es-VE', {{ dateStyle: 'long' }}).format(new Date());
+            const logoUrl = new URL(`${{rutaBaseArchivos}}src/assets/Logo.svg`, window.location.href).href;
+
+            const fichasObras = obrasEnCurso.map(([obra, data]) => {{
+                const porcentajeObra = Math.max(0, Math.min(100, Number(data.avance_financiero_pct) || 0));
+                const porcentajeEjecutadoObra = Number(data.monto_contrato) > 0
+                    ? Math.max(0, Math.min(100, (Number(data.estimado_ejecutado) / Number(data.monto_contrato)) * 100))
+                    : 0;
+                return `<article class="project">
+                    <header class="project-heading">
+                        <div><p class="project-kicker">Obra en curso</p><h2>${{escaparHTML(obra)}}</h2></div>
+                        <span class="status">En Curso</span>
+                    </header>
+                    <div class="progress-block">
+                        <div class="progress-heading"><span>Avance financiero cobrado</span><strong>${{porcentajeObra.toFixed(2)}}%</strong></div>
+                        <div class="progress-track"><span style="width:${{porcentajeObra}}%"></span></div>
+                        <p>Ejecutado: ${{formatearUSD(data.estimado_ejecutado)}} (${{porcentajeEjecutadoObra.toFixed(2)}}% del contrato).</p>
+                    </div>
+                    <div class="project-metrics">
+                        <div><span>Monto del contrato</span><strong>${{formatearUSD(data.monto_contrato)}}</strong></div>
+                        <div><span>Monto ejecutado</span><strong>${{formatearUSD(data.estimado_ejecutado)}}</strong></div>
+                        <div><span>Total desembolsado</span><strong>${{formatearUSD(data.cobrado_desembolsado)}}</strong></div>
+                        <div><span>Saldo por cobrar</span><strong>${{formatearUSD(data.por_cobrar)}}</strong></div>
+                        <div><span>Flujo de caja</span><strong>${{formatearUSD(data.flujo_caja)}}</strong></div>
+                        <div><span>Estado</span><strong>En Curso</strong></div>
+                    </div>
+                </article>`;
+            }}).join('');
+
+            vistaReporte.innerHTML = `
+                    <style>
+                        * {{ box-sizing: border-box; }}
+                        body {{ max-width: 980px; margin: 0 auto; padding: 28px 32px; color: #27332d; background: #fff; font: 14px/1.5 Arial, sans-serif; }}
+                        .report-view[hidden] {{ display: none !important; }}
+                        .report-view:not([hidden]) {{ display: block; }}
+                        .report-actions {{ display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 18px; }}
+                        .print-button {{ padding: 9px 14px; border: 1px solid #176b4d; border-radius: 5px; color: #fff; background: #176b4d; cursor: pointer; font: inherit; font-weight: 700; }}
+                        .back-button {{ padding: 9px 14px; border: 1px solid #dfe6df; border-radius: 5px; color: #405047; background: #fff; cursor: pointer; font: inherit; font-weight: 600; }}
+                        .report-header {{ display: flex; align-items: center; gap: 18px; margin-bottom: 22px; padding-bottom: 16px; border-bottom: 3px solid #176b4d; }}
+                        .logo {{ width: 66px; height: 74px; flex: 0 0 66px; object-fit: contain; }}
+                        .company {{ margin: 0 0 5px; color: #176b4d; font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }}
+                        h1 {{ margin: 0; color: #202923; font-size: 25px; line-height: 1.2; }}
+                        .report-subtitle {{ margin: 6px 0 0; color: #68756c; font-size: 12px; }}
+                        .scope {{ margin: 0 0 18px; padding: 10px 12px; border-left: 3px solid #176b4d; color: #405047; background: #f1f6f2; }}
+                        .section-title {{ margin: 20px 0 10px; color: #2b3830; font-size: 17px; }}
+                        .summary {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }}
+                        .metric {{ min-height: 76px; padding: 11px 12px; border: 1px solid #dfe6df; border-radius: 5px; }}
+                        .metric span, .project-metrics span {{ display: block; color: #59665d; font-size: 11px; font-weight: 600; }}
+                        .metric strong {{ display: block; margin-top: 5px; color: #176b4d; font-size: 18px; overflow-wrap: anywhere; }}
+                        .management-summary {{ margin: 12px 0 18px; color: #405047; }}
+                        .project {{ margin-top: 12px; padding: 13px; border: 1px solid #dfe6df; border-radius: 5px; break-inside: avoid; page-break-inside: avoid; }}
+                        .project-heading {{ display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-bottom: 9px; border-bottom: 1px solid #e8ede8; }}
+                        .project-kicker {{ margin: 0 0 3px; color: #68756c; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }}
+                        .project h2 {{ margin: 0; color: #202923; font-size: 17px; line-height: 1.35; }}
+                        .status {{ flex: 0 0 auto; padding: 4px 8px; border-radius: 3px; color: #176b4d; background: #e8f3ed; font-size: 11px; font-weight: 700; }}
+                        .progress-block {{ margin: 11px 0; }}
+                        .progress-heading {{ display: flex; justify-content: space-between; gap: 12px; color: #445148; font-size: 12px; }}
+                        .progress-track {{ height: 7px; margin-top: 5px; overflow: hidden; border-radius: 5px; background: #e8ede8; }}
+                        .progress-track span {{ display: block; height: 100%; border-top: 7px solid #4a9b70; background: #4a9b70; }}
+                        .progress-block p {{ margin: 5px 0 0; color: #68756c; font-size: 11px; }}
+                        .project-metrics {{ display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }}
+                        .project-metrics > div {{ padding: 8px; background: #f8faf8; }}
+                        .project-metrics strong {{ display: block; margin-top: 3px; color: #29372d; font-size: 13px; overflow-wrap: anywhere; }}
+                        .empty {{ padding: 20px; border: 1px dashed #cfd9d0; color: #66736a; text-align: center; }}
+                        .footer {{ margin-top: 20px; padding-top: 9px; border-top: 1px solid #dfe6df; color: #68756c; font-size: 10px; }}
+                        @page {{ size: portrait; margin: 15mm; }}
+                        @media (max-width: 620px) {{ body {{ padding: 18px 14px; }} .summary {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }} .project-metrics {{ grid-template-columns: repeat(2, minmax(0, 1fr)); }} }}
+                        @media print {{
+                            * {{ -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
+                            body {{ max-width: none; padding: 0; }}
+                            .app-layout, .report-actions {{ display: none !important; }}
+                            .report-view {{ display: block !important; max-width: none; margin: 0; padding: 0; }}
+                            .progress-track span {{ border-top-color: #4a9b70; }}
+                        }}
+                    </style>
+                    <div class="report-actions"><button class="back-button" id="back-to-dashboard" type="button">Volver al tablero</button><button class="print-button" id="print-report" type="button">Imprimir / Guardar como PDF</button></div>
+                    <header class="report-header">
+                        <img class="logo" src="${{logoUrl}}" alt="Logo de Inversora Macroandes">
+                        <div><p class="company">Inversora Macroandes</p><h1>Reporte ejecutivo, gerencial y financiero</h1><p class="report-subtitle">Tablero de obras · Fecha de emisión: ${{escaparHTML(fecha)}}</p></div>
+                    </header>
+                    <p class="scope"><strong>Alcance:</strong> este reporte presenta exclusivamente las obras con estado “En Curso” registrado en el tablero.</p>
+                    <h2 class="section-title">Resumen ejecutivo del portafolio activo</h2>
+                    <section class="summary" aria-label="Indicadores consolidados de obras en curso">
+                        <div class="metric"><span>Obras en curso</span><strong>${{obrasEnCurso.length}}</strong></div>
+                        <div class="metric"><span>Monto total de contratos</span><strong>${{formatearUSD(totales.contratos)}}</strong></div>
+                        <div class="metric"><span>Monto ejecutado</span><strong>${{formatearUSD(totales.ejecutado)}}</strong></div>
+                        <div class="metric"><span>Total desembolsado</span><strong>${{formatearUSD(totales.desembolsado)}}</strong></div>
+                        <div class="metric"><span>Saldo por cobrar</span><strong>${{formatearUSD(totales.porCobrar)}}</strong></div>
+                        <div class="metric"><span>Flujo de caja</span><strong>${{formatearUSD(totales.flujo)}}</strong></div>
+                    </section>
+                    <p class="management-summary">Las obras activas registran una ejecución acumulada equivalente al ${{porcentajeEjecutado.toFixed(2)}}% del monto contratado y desembolsos por el ${{porcentajeDesembolsado.toFixed(2)}}%. El saldo consolidado pendiente por cobrar es de ${{formatearUSD(totales.porCobrar)}}.</p>
+                    <h2 class="section-title">Detalle gerencial y financiero por obra</h2>
+                    ${{fichasObras || '<div class="empty">No hay obras en curso para incluir en este reporte.</div>'}}
+                    <footer class="footer">Fuente: tablero de control de obras de Inversora Macroandes. Los montos corresponden a los valores registrados para cada proyecto activo.</footer>
+                `;
+            vistaTablero.hidden = true;
+            vistaReporte.hidden = false;
+            document.title = 'Reporte ejecutivo, gerencial y financiero | Inversora Macroandes';
+            window.scrollTo(0, 0);
+            document.getElementById('print-report').addEventListener('click', () => window.print());
+            document.getElementById('back-to-dashboard').addEventListener('click', () => {{
+                vistaReporte.hidden = true;
+                vistaReporte.innerHTML = '';
+                vistaTablero.hidden = false;
+                document.title = 'Inversora Macroandes';
+                window.scrollTo(0, 0);
+            }});
         }}
 
         function renderizarTablero() {{
@@ -367,6 +499,7 @@ def generar_dashboard():
 
         document.addEventListener('DOMContentLoaded', () => {{
             document.getElementById('files-dialog-close').addEventListener('click', () => dialogArchivos.close());
+            document.getElementById('generate-report').addEventListener('click', generarReportePDF);
             document.querySelectorAll('[data-view]').forEach((boton) => {{
                 boton.addEventListener('click', () => {{
                     estadoSelector.vista = boton.dataset.view;
