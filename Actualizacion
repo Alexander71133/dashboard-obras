@@ -2,8 +2,8 @@
 # El generador usa ese libro fuente cuando está disponible; si falta, avisa y
 # usa la copia guardada en Datos.
 
-python src/generar_html.py
 
+python src/generar_html.py
 git add .
 git commit -m "Actualizacion de datos financieros en Excel"
 git push origin main

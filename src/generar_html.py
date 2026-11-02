@@ -245,7 +245,7 @@ def generar_dashboard():
         .board-search:focus {{ border-color: #8585ff; box-shadow: 0 0 0 2px #f0f0ff; }}
         .table-scroll {{ overflow-x: auto; }}
         .project-table {{ width: 100%; min-width: 1040px; border-collapse: collapse; text-align: left; }}
-        .transaction-table {{ width: 100%; min-width: 850px; border-collapse: collapse; text-align: left; }}
+        .transaction-table {{ width: 100%; min-width: 930px; border-collapse: collapse; text-align: left; }}
         .project-table th {{ height: 36px; padding: 0 12px; border-top: 1px solid #eceef2; border-bottom: 1px solid #eceef2; color: #9699a6; background: #fbfbfc; font-size: 9px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }}
         .project-table td {{ height: 53px; padding: 8px 12px; border-bottom: 1px solid #f0f1f4; color: #454650; font-size: 10px; white-space: nowrap; }}
         .transaction-table th {{ height: 36px; padding: 0 12px; border-top: 1px solid #eceef2; border-bottom: 1px solid #eceef2; color: #9699a6; background: #fbfbfc; font-size: 9px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; }}
@@ -371,7 +371,7 @@ def generar_dashboard():
                     <p class="board-description transactions-note">Total neto = entradas menos salidas</p>
                     <div class="table-scroll">
                         <table class="transaction-table">
-                            <thead><tr><th>Obra</th><th>Entradas</th><th>Salidas</th><th>Total neto</th><th>Facturas de compra</th></tr></thead>
+                            <thead><tr><th>Obra</th><th>Entradas</th><th>Salidas</th><th>Total neto</th><th>Facturas</th></tr></thead>
                             <tbody id="transaction-rows"></tbody>
                         </table>
                     </div>
@@ -436,8 +436,8 @@ def generar_dashboard():
                     <td>${{formatearUSD(datos.total_salidas)}}</td>
                     <td class="transaction-total ${{claseTotal}}">${{formatearUSD(datos.total)}}</td>
                     <td>${{datos.facturas.length
-                        ? `<button class="files-button" type="button" data-invoices-project="${{escaparHTML(datos.obra)}}" aria-label="Ver facturas de compra de ${{escaparHTML(datos.obra)}}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> Ver ${{datos.facturas.length}}</button>`
-                        : '<span class="files-empty">Sin facturas</span>'}}</td>
+                        ? `<button class="files-button" type="button" data-invoices-project="${{escaparHTML(datos.obra)}}" aria-label="Ver facturas de ${{escaparHTML(datos.obra)}}"><i class="fa-solid fa-paperclip" aria-hidden="true"></i> Ver ${{datos.facturas.length}}</button>`
+                        : '<span class="files-empty">Sin archivos</span>'}}</td>
                 </tr>`;
             }}).join('') || '<tr><td class="empty-row" colspan="5">No hay transacciones para mostrar.</td></tr>';
             filasTransacciones.querySelectorAll('[data-invoices-project]').forEach((boton) => {{

@@ -110,12 +110,21 @@ def _copiar_archivos_obra(valor_carpeta, nombre_obra):
     return archivos
 
 
-def _copiar_archivo_transaccion(valor_ruta, nombre_obra, raiz_origen):
-    if valor_ruta is None or pd.isna(valor_ruta) or not str(valor_ruta).strip():
-        return None
+def _copiar_archivos_transaccion(valor_ruta, nombre_obra, raiz_origen):
+    if valor_ruta is None or pd.isna(valor_ruta):
+        return []
+
+    texto_ruta = str(valor_ruta).strip()
+    if not texto_ruta:
+        return []
+
+    tiene_separador = "/" in texto_ruta or "\\" in texto_ruta
+    tiene_extension = Path(texto_ruta).suffix.lower() != ""
+    if not tiene_separador and not tiene_extension:
+        return []
 
     ruta_relativa = Path(
-        *str(valor_ruta).strip().replace("\\", "/").split("/")
+        *texto_ruta.replace("\\", "/").split("/")
     )
     if ruta_relativa.is_absolute() or ".." in ruta_relativa.parts:
         raise ValueError(
@@ -136,41 +145,61 @@ def _copiar_archivo_transaccion(valor_ruta, nombre_obra, raiz_origen):
         raise ValueError(
             f"La factura de '{nombre_obra}' está fuera de la carpeta de Dropbox."
         ) from error
-    if not archivo_origen.is_file():
-        raise FileNotFoundError(
-            f"No existe la factura de '{nombre_obra}': {archivo_origen}"
-        )
 
     extensiones_admitidas = {
         ".csv", ".doc", ".docx", ".gif", ".jpeg", ".jpg",
         ".pdf", ".png", ".txt", ".webp", ".xls", ".xlsx",
     }
-    if archivo_origen.suffix.lower() not in extensiones_admitidas:
-        raise ValueError(
-            f"Tipo de archivo no admitido para la factura de '{nombre_obra}': "
-            f"{archivo_origen.name}"
+    if archivo_origen.is_file():
+        archivos_origen = [archivo_origen]
+    elif archivo_origen.is_dir():
+        archivos_origen = sorted(
+            (archivo for archivo in archivo_origen.rglob("*") if archivo.is_file()),
+            key=lambda item: item.as_posix().casefold(),
+        )
+    else:
+        raise FileNotFoundError(
+            f"No existe el archivo o carpeta de factura de '{nombre_obra}': "
+            f"{archivo_origen}"
         )
 
-    destino = (
-        BASE_DIR
-        / "documentos"
-        / "obras"
-        / _slug_obra(nombre_obra)
-        / ruta_relativa
-    )
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(archivo_origen, destino)
-    ruta_web = quote(
-        destino.relative_to(BASE_DIR).as_posix(),
-        safe="/",
-    )
-    return {
-        "nombre": archivo_origen.name,
-        "ruta": ruta_web,
-        "tipo": "imagen"
-        if archivo_origen.suffix.lower() in {".gif", ".jpeg", ".jpg", ".png", ".webp"}
-        else "documento",
-    }
+    facturas = []
+    for archivo in archivos_origen:
+        if archivo.is_symlink():
+            raise ValueError(f"No se admiten enlaces simbólicos en: {archivo}")
+        if archivo.suffix.lower() not in extensiones_admitidas:
+            if archivo_origen.is_file():
+                raise ValueError(
+                    f"Tipo de archivo no admitido para la factura de '{nombre_obra}': "
+                    f"{archivo.name}"
+                )
+            continue
+
+        ruta_archivo = archivo.relative_to(raiz_origen)
+        destino = (
+            BASE_DIR
+            / "documentos"
+            / "obras"
+            / _slug_obra(nombre_obra)
+            / ruta_archivo
+        )
+        destino.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(archivo, destino)
+        ruta_web = quote(
+            destino.relative_to(BASE_DIR).as_posix(),
+            safe="/",
+        )
+        facturas.append(
+            {
+                "nombre": archivo.name,
+                "ruta": ruta_web,
+                "tipo": "imagen"
+                if archivo.suffix.lower()
+                in {".gif", ".jpeg", ".jpg", ".png", ".webp"}
+                else "documento",
+            }
+        )
+    return facturas
 
 
 def _estado_dashboard(valor, nombre_obra):
@@ -361,11 +390,23 @@ def obtener_datos_transacciones():
     df = pd.read_excel(ruta_excel, sheet_name="Registro_Transacciones")
     columnas = {
         "obra": _buscar_columna(df.columns, ("Obra",)),
-        "movimiento": _buscar_columna(df.columns, ("Tipo de movimiento",)),
-        "categoria": _buscar_columna(df.columns, ("Categoria",)),
+        "movimiento": _buscar_columna(
+            df.columns,
+            ("Tipo de movimiento", "Tipo de Movimiento", "Tipo de movimiento "),
+        ),
+        "categoria": _buscar_columna(
+            df.columns,
+            ("Categoria", "Categoría", "Categoria ", "Categoría "),
+        ),
         "monto": _buscar_columna(df.columns, ("Monto",)),
-        "factura": _buscar_columna(df.columns, ("Factura",)),
-        "condicion": _buscar_columna(df.columns, ("Condicion",)),
+        "factura": _buscar_columna(
+            df.columns,
+            ("Factura",),
+        ),
+        "condicion": _buscar_columna(
+            df.columns,
+            ("Condicion", "Condición", "Status", "Estatus"),
+        ),
     }
     faltantes = [nombre for nombre, columna in columnas.items() if columna is None]
     if faltantes:
@@ -446,12 +487,12 @@ def obtener_datos_transacciones():
         )
         datos_obra[campo_total] += monto
 
-        factura = _copiar_archivo_transaccion(
+        facturas = _copiar_archivos_transaccion(
             fila.get(columnas["factura"]),
             obra,
             ruta_excel.parent,
         )
-        if factura:
+        for factura in facturas:
             datos_obra["facturas"][factura["ruta"]] = factura
 
     return [
