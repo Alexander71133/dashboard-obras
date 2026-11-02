@@ -354,10 +354,6 @@ def generar_dashboard():
                         </table>
                     </div>
                 </section>
-                <section class="detail-card" id="conciliacion" aria-label="Conciliación financiera">
-                    <div class="detail-heading"><div><h2>Conciliación de flujo de caja</h2><p id="chart-project-name">Detalle del proyecto seleccionado</p></div><span class="detail-caption">USD</span></div>
-                    <div id="waterfallChart"></div>
-                </section>
                 <section id="registro-transacciones" class="board-card transactions-card" aria-label="Registro de transacciones por obra">
                     <div class="board-head"><div><h2 class="board-title">Registro de Transacciones <span class="board-count" id="transaction-count">0</span></h2><p class="board-description">Entradas y salidas agrupadas por obra, con su saldo neto.</p></div></div>
                     <div class="board-controls">
@@ -375,6 +371,10 @@ def generar_dashboard():
                             <tbody id="transaction-rows"></tbody>
                         </table>
                     </div>
+                </section>
+                <section class="detail-card" id="conciliacion" aria-label="Conciliación financiera">
+                    <div class="detail-heading"><div><h2>Conciliación de flujo de caja</h2><p id="chart-project-name">Detalle del proyecto seleccionado</p></div><span class="detail-caption">USD</span></div>
+                    <div id="waterfallChart"></div>
                 </section>
                 <dialog class="files-dialog" id="files-dialog" aria-labelledby="files-dialog-title">
                     <div class="files-dialog-header"><div><p id="files-dialog-type">Documentos y fotos</p><h2 id="files-dialog-title">Archivos del proyecto</h2><small id="files-dialog-count"></small></div><button class="files-dialog-close" id="files-dialog-close" type="button" aria-label="Cerrar"><i class="fa-solid fa-xmark"></i></button></div>
