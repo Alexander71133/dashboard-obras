@@ -326,7 +326,7 @@ def generar_dashboard():
             </header>
             <main class="content" id="resumen">
                 <section class="page-heading">
-                    <div><p class="eyebrow">Inversora Macroandes · Portafolio</p><h1>Control de obras</h1><p class="subtitle">Seguimiento financiero (Actualización pendiente)</p></div>
+                    <div><p class="eyebrow">Inversora Macroandes · Seguimiento financiero</p><h1>Control de obras</h1><p class="subtitle">(Actualización pendiente)</p></div>
                     <a class="report-button" id="generate-report" href="reporte_obras.html" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Generar reporte PDF</a>
                 </section>
                 <section class="kpi-grid" aria-label="Indicadores financieros de los proyectos filtrados">
