@@ -317,7 +317,7 @@ def generar_dashboard():
                 <a class="nav-item" href="#conciliacion"><i class="fa-solid fa-chart-column"></i> Finanzas</a>
                 <a class="nav-item" href="#registro-transacciones"><i class="fa-solid fa-money-bill-transfer"></i> Registro de Transacciones</a>
             </nav>
-            <div class="sidebar-footer">Inversora Macroandes<br>Dpto. de Sistemas</div>
+            <div class="sidebar-footer">Inversora  Macroandes<br>Dpto. de Sistemas</div>
         </aside>
         <div class="main-shell">
             <header class="topbar">

@@ -4,6 +4,13 @@
 
 python src/generar_html.py
 
-git add .
+# Confirma que la generación produjo cambios antes de publicar.
+git status --short
+git add index.html output/dashboard_obras.html reporte_obras.html documentos/obras
+git diff --cached --stat
 git commit -m "Actualizacion de datos financieros en Excel"
 git push origin main
+
+# El push inicia la publicación, pero no confirma que GitHub Pages terminó.
+# En GitHub > Actions, verifica que "pages build and deployment" esté en verde.
+# Si queda pendiente o falla, el dashboard público todavía no se actualizó.
