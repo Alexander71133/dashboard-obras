@@ -181,7 +181,7 @@ def _generar_reporte_html(datos_obras):
 def generar_dashboard():
     datos_obras = obtener_datos_obras()
     datos_json = json.dumps(datos_obras, ensure_ascii=False)
-    transacciones = obtener_datos_transacciones()
+    transacciones = obtener_datos_transacciones(datos_obras)
     transacciones_json = json.dumps(transacciones, ensure_ascii=False)
     ruta_base_archivos = ""
 

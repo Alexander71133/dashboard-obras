@@ -369,10 +369,16 @@ def obtener_datos_obras():
     return proyectos
 
 
-def obtener_datos_transacciones():
-    """Agrupa las entradas y salidas de Registro_Transacciones por obra."""
+def obtener_datos_transacciones(estados_obras=None):
+    """Agrupa transacciones y prioriza el estado actual si se proporciona."""
     usar_control_obras = RUTA_CONTROL_OBRAS.is_file()
     ruta_excel = RUTA_CONTROL_OBRAS if usar_control_obras else RUTA_EXCEL
+
+    estados_por_obra = {
+        _normalizar_encabezado(nombre): datos["estado"]
+        for nombre, datos in (estados_obras or {}).items()
+        if datos.get("estado") in {"ACTIVA", "CULMINADA"}
+    }
 
     if not ruta_excel.is_file():
         raise FileNotFoundError(f"No se encontró el archivo Excel en: {ruta_excel}")
@@ -456,7 +462,10 @@ def obtener_datos_transacciones():
                 f"Condición no reconocida en la fila {indice + 2} "
                 f"de 'Registro_Transacciones': '{condicion}'."
             )
-        estado_obra = condiciones_validas[condicion_normalizada]
+        estado_registrado = condiciones_validas[condicion_normalizada]
+        estado_obra = estados_por_obra.get(
+            _normalizar_encabezado(obra), estado_registrado
+        )
 
         datos_obra = obras.setdefault(
             obra,
