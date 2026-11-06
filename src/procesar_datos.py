@@ -85,9 +85,11 @@ def _copiar_archivos_obra(valor_carpeta, nombre_obra):
         if not archivo.is_file():
             continue
         if archivo.suffix.lower() not in extensiones_admitidas:
-            raise ValueError(
-                f"Tipo de archivo no admitido para '{nombre_obra}': {archivo.name}"
+            print(
+                f"AVISO: se omitió un archivo no admitido para '{nombre_obra}': "
+                f"{archivo.name}"
             )
+            continue
 
         ruta_relativa = archivo.relative_to(carpeta_origen)
         destino = destino_obra / ruta_relativa
